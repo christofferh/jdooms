@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="jdooms">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../jdooms/classes/artifacts/jdooms_jar/jdooms.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/../jdooms/src/main/java" />
+    </SOURCES>
+  </library>
+</component>
