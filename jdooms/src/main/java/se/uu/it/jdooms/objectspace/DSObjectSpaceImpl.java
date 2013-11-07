@@ -101,8 +101,9 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
             logger.debug("creating object");
             ClassPool classPool = ClassPool.getDefault();
             try {
-                classPool.appendClassPath("/Users/Christoffer/Code/project-it/jdooms-worker/out/production/jdooms-worker");
-                classPool.appendClassPath("/Users/Christoffer/Code/project-it/jdooms/bin");
+                String path = System.getProperty("user.dir");
+                classPool.appendClassPath(path + "/out/production/jdooms-worker");
+                classPool.appendClassPath(path + "/../jdooms/bin");
             } catch (NotFoundException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
