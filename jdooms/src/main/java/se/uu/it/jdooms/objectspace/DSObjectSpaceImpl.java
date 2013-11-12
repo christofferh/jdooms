@@ -3,6 +3,12 @@ package se.uu.it.jdooms.objectspace;
 import javassist.*;
 import mpi.MPI;
 import org.apache.log4j.Logger;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.security.CodeSource;
 import java.util.HashMap;
 
 /**
@@ -98,59 +104,79 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
             logger.debug("fetched object");
             return obj;
         } else {
-            logger.debug("creating object");
-            ClassPool classPool = ClassPool.getDefault();
-            try {
-                String path = System.getProperty("user.dir");
-                classPool.appendClassPath(path + "/out/production/jdooms-worker");
-                classPool.appendClassPath(path + "/../jdooms/bin");
-            } catch (NotFoundException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            }
-
-            logger.debug(classPool.toString());
 
             try {
-                logger.debug("Trying to get ctclass");
-                CtClass ctClass = classPool.get(clazz);
+                Method findLoadedClass = ClassLoader.class.getDeclaredMethod("findLoadedClass", new Class[] { String.class });
+                findLoadedClass.setAccessible(true);
+                ClassLoader cl = this.getClass().getClassLoader();
+                Class tmp_cl = (Class) findLoadedClass.invoke(cl, clazz);
+                if (tmp_cl != null) {
+                    obj = tmp_cl.newInstance();
 
-                logger.debug("Trying to get new superclass");
-                CtClass superCtClass = classPool.get("se.uu.it.jdooms.objectspace.DSObjectBase");
+                    ((DSObjectBase)obj).setClassifier(Classifier.Shared);
+                    ((DSObjectBase)obj).setID(ID);
 
-                CtClass ctSerializable = classPool.get("java.io.Serializable");
+                    putObject(obj, Classifier.Shared);
+                } else {
 
-                if (ctClass.isFrozen()) {
-                    ctClass.defrost();
+                    logger.debug("creating object");
+                    ClassPool classPool = ClassPool.getDefault();
+                    try {
+                        String path = System.getProperty("user.dir");
+                        classPool.appendClassPath(path + "/out/production/jdooms-worker");
+                        classPool.appendClassPath(path + "/../jdooms/bin");
+                    } catch (NotFoundException e) {
+                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    }
+
+                    logger.debug(classPool.toString());
+
+                    try {
+                        logger.debug("Trying to get ctclass");
+                        CtClass ctClass = classPool.get(clazz);
+
+                        logger.debug("Trying to get new superclass");
+                        CtClass superCtClass = classPool.get("se.uu.it.jdooms.objectspace.DSObjectBase");
+
+                        CtClass ctSerializable = classPool.get("java.io.Serializable");
+
+                        if (ctClass.isFrozen()) {
+                            ctClass.defrost();
+                        }
+
+                        logger.debug("Trying to set new superclass");
+                        ctClass.setSuperclass(superCtClass); //check if alredy exists
+                        ctClass.addInterface(ctSerializable);//check if alredy exists
+
+
+                        logger.debug("Trying to create class from CtClass");
+                        Class tmp_clazz = ctClass.toClass();
+
+                        //ClassDebug(tmp_clazz);
+
+                        logger.debug("Trying to create instance from class");
+                        obj = tmp_clazz.newInstance();
+
+                        ((DSObjectBase)obj).setClassifier(Classifier.Shared);
+                        ((DSObjectBase)obj).setID(ID);
+
+                        putObject(obj, Classifier.Shared);
+
+                    } catch (NotFoundException e) {
+                        e.printStackTrace();
+                    } catch (CannotCompileException e) {
+                        e.printStackTrace();
+                        logger.debug(e.getCause());
+                        logger.debug(e.getReason());
+                        logger.debug(e.getMessage());
+                    }
                 }
 
-                logger.debug("Trying to set new superclass");
-                ctClass.setSuperclass(superCtClass); //check if alredy exists
-                ctClass.addInterface(ctSerializable);//check if alredy exists
-
-
-            /*logger.debug("filed printing");
-            for (CtField field : ctClass.getDeclaredFields()) {
-                logger.debug("field :" + field.getName());
-
-            }*/
-
-
-                logger.debug("Trying to create class from CtClass");
-                Class cl = ctClass.toClass();
-
-                logger.debug("Trying to create instance from class");
-                obj = cl.newInstance();
-
-                ((DSObjectBase)obj).setClassifier(Classifier.Shared);
-                ((DSObjectBase)obj).setID(ID);
-
-                putObject(obj, Classifier.Shared);
-            } catch (NotFoundException e) {
-                e.printStackTrace();
-            } catch (CannotCompileException e) {
-                e.printStackTrace();
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
-
             return obj;
         }
     }
