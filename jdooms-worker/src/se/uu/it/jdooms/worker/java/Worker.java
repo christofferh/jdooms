@@ -16,7 +16,17 @@ public class Worker implements DSObject {
     @Override
     public void run() {
         System.out.println("Worker alive!");
-        //DistributedTest dt = null;
+        for (int i = 0; i < 2; i++) {
+            try {
+                ((DistributedTest)objectSpace.dsNew("se.uu.it.jdooms.worker.java.DistributedTest", i+1)).Test();
+            } catch (InstantiationException e) {
+                System.out.println("Instantiation exception");
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                System.out.println("Illegal access exception");
+                e.printStackTrace();
+            }
+        }
         for (int i = 0; i < 2; i++) {
             try {
                 ((DistributedTest)objectSpace.dsNew("se.uu.it.jdooms.worker.java.DistributedTest", i+1)).Test();
