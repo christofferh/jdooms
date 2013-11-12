@@ -9,7 +9,6 @@ import se.uu.it.jdooms.objectspace.DSObjectSpaceImpl;
 public class DSObjectDispatcher {
     private static final Logger logger = Logger.getLogger(DSObjectDispatcher.class);
     private DSObjectSpaceImpl dsObjectSpace;
-    private Thread[] threadArray;
 
     public DSObjectDispatcher(DSObjectSpaceImpl dsObjectSpace){
         this.dsObjectSpace = dsObjectSpace;
@@ -59,20 +58,4 @@ public class DSObjectDispatcher {
 
         return (T)worker.newInstance();
     }
-
-    /**
-     * Interface method for DSObjects to finalize themselves
-     * @param obj The object to be finalized
-     */
-    /*@Override
-    public void done(DSObject obj) {
-        logger.debug("Finalizer");
-        //To change body of implemented methods use File | Settings | File Templates.
-        for (int i = 0; i < threadArray.length; i++) {
-            if () {
-                logger.debug("Removing object from thread array");
-                threadArray[i] = null;
-            }
-        }
-    }*/
 }
