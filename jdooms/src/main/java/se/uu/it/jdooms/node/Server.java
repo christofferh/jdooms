@@ -1,8 +1,13 @@
 package se.uu.it.jdooms.node;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.MDC;
 import se.uu.it.jdooms.objectspace.DSObjectSpaceImpl;
 import se.uu.it.jdooms.workerdispatcher.DSObjectDispatcher;
+
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+
 import static se.uu.it.jdooms.objectspace.DSObjectSpace.*;
 
 /**
