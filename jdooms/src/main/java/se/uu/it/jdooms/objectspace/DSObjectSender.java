@@ -29,7 +29,7 @@ public class DSObjectSender {
 
         /* @TODO: Make non-blocking */
         for (int node = 0; node < dsObjectSpace.getClusterSize(); node++) {
-            if (node != dsObjectSpace.getNodeId()) {
+            if (node != dsObjectSpace.getRank()) {
                 MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, node, 10);
             }
         }
@@ -44,7 +44,7 @@ public class DSObjectSender {
         sendBuffer[0] = (Integer) ID;
         /* @TODO: Make non-blocking */
         for (int node = 0; node < dsObjectSpace.getClusterSize(); node++) {
-            if (node != dsObjectSpace.getNodeId()) {
+            if (node != dsObjectSpace.getRank()) {
                 MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, node, 20);
             }
         }

@@ -10,7 +10,7 @@ public interface DSObjectSpace {
     public enum Permission {
         Read, ReadWrite;
     }
-    int getNodeId();
+    int getRank();
     Object getObject(int ID, Permission permission);
     void putObject(Object obj, Classifier classifier);
     Object dsNew(String clazz, int ID) throws InstantiationException, IllegalAccessException;

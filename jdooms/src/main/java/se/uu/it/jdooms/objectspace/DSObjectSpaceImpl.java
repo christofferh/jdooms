@@ -6,9 +6,6 @@ import org.apache.log4j.Logger;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.security.CodeSource;
 import java.util.HashMap;
 
 /**
@@ -18,7 +15,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     private static final Logger logger = Logger.getLogger(DSObjectSpaceImpl.class);
     private HashMap<Integer, Object> objectSpace;
 
-    private int nodeId;
+    private int rank;
     private int clusterSize;
     private DSObjectCommunication dsObjectCommunication;
     private Thread dsObjectCommThread;
@@ -27,7 +24,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         objectSpace = new HashMap<Integer, Object>();
 
         MPI.Init(args);
-        nodeId = MPI.COMM_WORLD.Rank();
+        rank = MPI.COMM_WORLD.Rank();
         clusterSize = MPI.COMM_WORLD.Size();
 
         dsObjectCommunication = new DSObjectCommunication(this);
@@ -40,8 +37,8 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      * @return the node Id
      */
     @Override
-    public int getNodeId() {
-        return nodeId;
+    public int getRank() {
+        return rank;
     }
 
     /**
@@ -96,7 +93,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      * @throws IllegalAccessException
      */
     @Override
-    public Object dsNew(String clazz, int ID) throws IllegalAccessException, InstantiationException {
+    public Object dsNew(String clazz, int ID) throws IllegalAccessException, InstantiationException { //Should be synchronized
         Object obj = null;
         obj = getObject(ID, Permission.ReadWrite); //What kind of permission should we use here.
 
