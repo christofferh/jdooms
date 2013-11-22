@@ -21,7 +21,7 @@ public class Server {
 	 */
 	public static void main(String[] args) {
         // take string input of where to find the jar or class to load and execute
-        workerName = args[3];
+        workerName = args[0];
 
         Server server = new Server(args);
         server.start();
