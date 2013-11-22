@@ -22,7 +22,7 @@ package lubench;
 
 import mpi.*;
 
-public class JGFLUFactBenchSizeC{ 
+public class JGFLUFactBenchSize {
 
   public static int nprocess;
   public static int rank;
@@ -30,16 +30,17 @@ public class JGFLUFactBenchSizeC{
   public static void main(String argv[]) throws MPIException{
 
 /* Initialise MPI */
+     int SIZE = Integer.parseInt(argv[0]);
      MPI.Init(argv);
      rank = MPI.COMM_WORLD.Rank();
      nprocess = MPI.COMM_WORLD.Size();
 
     if(rank==0) {
-      JGFInstrumentor.printHeader(2,2,nprocess);
+      JGFInstrumentor.printHeader(2,SIZE,nprocess);
     }
 
     JGFLUFactBench lub = new JGFLUFactBench(nprocess,rank);
-    lub.JGFrun(2);
+    lub.JGFrun(SIZE);
  
 /* Finalise MPI */
      MPI.Finalize();

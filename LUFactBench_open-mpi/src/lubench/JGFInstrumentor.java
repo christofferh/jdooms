@@ -185,17 +185,7 @@ public class JGFInstrumentor{
       header = base + "1";
       break;
     case 2:
-      switch (size) {
-      case 0:
-	header = base + "2 - Size A";
-	break;
-      case 1:
-	header = base + "2 - Size B";
-	break;
-      case 2:
-	header = base + "2 - Size C";
-	break;
-      }
+	  header = base + "Size: " + size;
       break; 
     case 3:    
       switch (size) {

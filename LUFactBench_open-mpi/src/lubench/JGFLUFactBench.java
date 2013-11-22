@@ -45,7 +45,7 @@ public class JGFLUFactBench extends Linpack implements JGFSection2{
     int r_count,z_count;
     int p_ldaa;
 
-    n = datasizes[size]; 
+    n = size;
     ldaa = n; 
     lda = ldaa + 1;
 
@@ -147,7 +147,7 @@ public class JGFLUFactBench extends Linpack implements JGFSection2{
 
     int i;
     double eps,residn;
-    final double ref[] = {6.0, 12.0, 20.0}; 
+    final double ref[] = {6.0, 12.0, 20.0};
 
     if(rank==0) {
     for (i = 0; i < n; i++) {
@@ -169,10 +169,9 @@ public class JGFLUFactBench extends Linpack implements JGFSection2{
     eps =  epslon((double)1.0);
     residn = resid/( n*norma*normx*eps );
     
-    if (residn > ref[size]) {
+    if (residn > 20) {
 	System.out.println("Validation failed");
 	System.out.println("Computed Norm Res = " + residn);
-        System.out.println("Reference Norm Res = " + ref[size]); 
     }
     }
 
