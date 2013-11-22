@@ -9,7 +9,7 @@ workspace.xml
 tasks.xml
 *.iws
 *.log
-*.log.*
+log
 out/
 inspectionProfiles/
 mpj-v0_38/lib/daemon.jar
