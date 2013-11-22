@@ -2,6 +2,7 @@ package se.uu.it.jdooms.objectspace;
 
 import javassist.*;
 import mpi.MPI;
+import mpi.MPIException;
 import org.apache.log4j.Logger;
 
 import java.lang.reflect.InvocationTargetException;
@@ -23,9 +24,13 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     public DSObjectSpaceImpl(String[] args) {
         objectSpace = new HashMap<Integer, Object>();
 
-        MPI.Init(args);
-        rank = MPI.COMM_WORLD.Rank();
-        clusterSize = MPI.COMM_WORLD.Size();
+        try {
+            MPI.Init(args);
+            rank = MPI.COMM_WORLD.Rank();
+            clusterSize = MPI.COMM_WORLD.Size();
+        } catch (MPIException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
 
         dsObjectCommunication = new DSObjectCommunication(this);
         dsObjectCommThread = new Thread(dsObjectCommunication);

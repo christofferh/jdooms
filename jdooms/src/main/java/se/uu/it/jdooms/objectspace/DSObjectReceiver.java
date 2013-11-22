@@ -1,6 +1,7 @@
 package se.uu.it.jdooms.objectspace;
 
 import mpi.MPI;
+import mpi.MPIException;
 import mpi.Status;
 import org.apache.log4j.Logger;
 import static se.uu.it.jdooms.objectspace.DSObjectSpace.*;
@@ -35,21 +36,30 @@ public class DSObjectReceiver {
 
         // @TODO Make non-blocking
         while(receiving) {
-            Status mps = MPI.COMM_WORLD.Recv(receiveBuffer, 0, 1, MPI.OBJECT, MPI.ANY_SOURCE, MPI.ANY_TAG);
-            switch (mps.tag) {
+            Status mps = null;
+            try {
+                mps = MPI.COMM_WORLD.Recv(receiveBuffer, 0, 1, MPI.OBJECT, MPI.ANY_SOURCE, MPI.ANY_TAG);
+            } catch (MPIException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+            switch (mps.getTag()) {
                 case 10:
-                    logger.debug("Got tag: " + mps.tag + " (putLocal)");
+                    logger.debug("Got tag: " + mps.getTag() + " (putLocal)");
                     Object object = receiveBuffer[0];
                     dsObjectSpace.putLocalObject(object, Classifier.Shared);
                     break;
                 case 20:
-                    logger.debug("Got tag " + mps.tag + " from node " + mps.source + " (getObject)");
+                    logger.debug("Got tag " + mps.getTag() + " from node " + mps.getSource() + " (getObject)");
                     int objectID = (Integer) receiveBuffer[0];
                     Object localObject = dsObjectSpace.getLocalObject(objectID, Permission.ReadWrite);
                     sendBuffer[0] = localObject;
                     if (localObject != null) {
-                        logger.debug("Sending " + localObject + " to node " + mps.source);
-                        MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, mps.source, 10);
+                        logger.debug("Sending " + localObject + " to node " + mps.getSource());
+                        try {
+                            MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, mps.getSource(), 10);
+                        } catch (MPIException e) {
+                            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                        }
                     }
                     break;
                 case 30:

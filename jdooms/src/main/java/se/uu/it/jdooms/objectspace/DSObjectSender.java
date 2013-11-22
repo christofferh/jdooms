@@ -1,6 +1,7 @@
 package se.uu.it.jdooms.objectspace;
 
 import mpi.MPI;
+import mpi.MPIException;
 import org.apache.log4j.Logger;
 import java.io.*;
 import static se.uu.it.jdooms.objectspace.DSObjectSpace.*;
@@ -30,7 +31,11 @@ public class DSObjectSender {
         /* @TODO: Make non-blocking */
         for (int node = 0; node < dsObjectSpace.getClusterSize(); node++) {
             if (node != dsObjectSpace.getRank()) {
-                MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, node, 10);
+                try {
+                    MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, node, 10);
+                } catch (MPIException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                }
             }
         }
     }
@@ -45,7 +50,11 @@ public class DSObjectSender {
         /* @TODO: Make non-blocking */
         for (int node = 0; node < dsObjectSpace.getClusterSize(); node++) {
             if (node != dsObjectSpace.getRank()) {
-                MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, node, 20);
+                try {
+                    MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, node, 20);
+                } catch (MPIException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                }
             }
         }
 
