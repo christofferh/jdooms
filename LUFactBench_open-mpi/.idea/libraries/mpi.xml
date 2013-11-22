@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="mpi">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../openmpi-1.9-javaobject/lib/mpi.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../openmpi-1.9-javaobject/lib/mpi.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
