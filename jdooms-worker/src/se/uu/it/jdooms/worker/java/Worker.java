@@ -16,6 +16,8 @@ public class Worker implements DSObject {
     @Override
     public void run() {
         System.out.println("Worker alive!");
+
+
         for (int i = 0; i < 2; i++) {
             try {
                 ((DistributedTest)objectSpace.dsNew("se.uu.it.jdooms.worker.java.DistributedTest", i+1)).Test();
