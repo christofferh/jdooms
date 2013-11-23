@@ -23,8 +23,8 @@ compile: clean
 clean:
 	rm -fr out
 
-run:
-	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -Xmx$(MEMORY)  -cp .:out/ lubench.JGFLUFactBenchSize $(LU_SIZE) | tee log
+run: 
+	$(MPI_HOME)/bin/mpirun -np $(NP) -hostfile $(MPI_HOME)/hostfile $(JAVA_HOME)/bin/java -Xmx$(MEMORY)  -cp .:out/ lubench.JGFLUFactBenchSize $(LU_SIZE) | tee log
 
 shit:
 	$(info dump..)
