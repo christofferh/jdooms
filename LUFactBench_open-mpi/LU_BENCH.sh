@@ -2,13 +2,13 @@ RESULT=result.csv
 HOSTFILE=/opt/openmpi-1.9-java-object/hostfile
 MEMORY=1024m
 
-NP_INIT=4
+NP_INIT=2
 NP_INC=2
-NP_MAX=6
+NP_MAX=32
 
 LU_INIT=1024
 LU_INC=1024
-LU_MAX=4096
+LU_MAX=2048
 
 echo START $(date) NP: $NP_INIT, $NP_INC, $NP_MAX. LU: $LU_INIT, $LU_INC, $LU_MAX. >> $RESULT
 for ((NP = $NP_INIT; NP <= $NP_MAX; NP += $NP_INC)); do
