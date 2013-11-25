@@ -110,8 +110,9 @@ public class JGFTimer {
                         + " ("+opname+"/s)");
       break;
       default:
-      System.out.println(name + "\t" + time + " (s) \t " + (float)this.perf() + "\t"
-                        + " ("+opname+"/s)");
+      //System.out.println(name + "\t" + time + " (s) \t " + (float)this.perf() + "\t"
+      //                 + " ("+opname+"/s)");
+    	System.out.println(time + "," + (float)this.perf());
       break;
       }
 

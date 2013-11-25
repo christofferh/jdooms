@@ -36,7 +36,8 @@ public class JGFLUFactBenchSize {
      nprocess = MPI.COMM_WORLD.Size();
 
     if(rank==0) {
-      JGFInstrumentor.printHeader(2,SIZE,nprocess);
+      //JGFInstrumentor.printHeader(2,SIZE,nprocess);
+	System.out.print(nprocess + "," + SIZE + ",");
     }
 
     JGFLUFactBench lub = new JGFLUFactBench(nprocess,rank);
