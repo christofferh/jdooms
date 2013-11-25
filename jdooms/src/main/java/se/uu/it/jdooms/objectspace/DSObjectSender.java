@@ -34,7 +34,7 @@ public class DSObjectSender {
                 try {
                     MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, node, 10);
                 } catch (MPIException e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    e.printStackTrace();
                 }
             }
         }
@@ -53,7 +53,7 @@ public class DSObjectSender {
                 try {
                     MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, node, 20);
                 } catch (MPIException e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    e.printStackTrace();
                 }
             }
         }

@@ -18,18 +18,20 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
 
     private int rank;
     private int clusterSize;
+    private int workerCount;
+
     private DSObjectCommunication dsObjectCommunication;
     private Thread dsObjectCommThread;
 
     public DSObjectSpaceImpl(String[] args) {
         objectSpace = new HashMap<Integer, Object>();
-
         try {
             MPI.Init(args);
             rank = MPI.COMM_WORLD.Rank();
             clusterSize = MPI.COMM_WORLD.Size();
+            workerCount = Integer.parseInt(args[1]);
         } catch (MPIException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         }
 
         dsObjectCommunication = new DSObjectCommunication(this);
@@ -46,9 +48,13 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         return rank;
     }
 
+    /**
+     * Returns the workerc ount given as program parameter
+     * @return the worker count
+     */
     @Override
-    public int getWokerCount() {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+    public int getWorkerCount() {
+        return workerCount;
     }
 
     /**
@@ -133,7 +139,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
                         classPool.appendClassPath(path + "/out/production/jdooms-worker");
                         classPool.appendClassPath(path + "/../jdooms/bin");
                     } catch (NotFoundException e) {
-                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                        e.printStackTrace();
                     }
 
                     logger.debug(classPool.toString());
@@ -180,9 +186,9 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
                 }
 
             } catch (NoSuchMethodException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                e.printStackTrace();
             } catch (InvocationTargetException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                e.printStackTrace();
             }
             return obj;
         }

@@ -20,9 +20,8 @@ public class Server {
 	 * @param args contains MPI parameters and Worker class
 	 */
 	public static void main(String[] args) {
-        // take string input of where to find the jar or class to load and execute
+        // Take string input of where to find the jar or class to load and execute
         workerName = args[0];
-
         Server server = new Server(args);
         server.start();
         //server.test();
