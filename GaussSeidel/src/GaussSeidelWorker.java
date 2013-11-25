@@ -1,6 +1,8 @@
 import se.uu.it.jdooms.objectspace.DSObjectSpace;
 import se.uu.it.jdooms.workerdispatcher.DSObject;
 
+import java.util.Random;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Daniel
@@ -22,7 +24,17 @@ public class GaussSeidelWorker implements DSObject{
         //To change body of implemented methods use File | Settings | File Templates.
         if(objectSpace.getRank() == 0) {
             float[][] matrix = generateMatrix();
-            int workers
+            int workerCount =  32;
+
+            int matrixLength = matrix.length;
+            int[] distribution = new int[workerCount];
+            for (int i = 0; i < workerCount; i++) {
+                distribution[i] = (matrixLength/workerCount) + matrixLength%workerCount;
+                matrixLength -= matrixLength%workerCount;
+            }
+            for (int dist : distribution) {
+                System.out.println("value: " + dist);
+            }
         }
         else {
 
@@ -31,6 +43,13 @@ public class GaussSeidelWorker implements DSObject{
 
 
     private float[][] generateMatrix() {
-        return new float[][] {{1,2,3,4,5,6,7,8},{1,2,3,4,5,6,7,8},{1,2,3,4,5,6,7,8},{1,2,3,4,5,6,7,8},{1,2,3,4,5,6,7,8},{1,2,3,4,5,6,7,8},{1,2,3,4,5,6,7,8}};
+        Random rnd = new Random();
+        float[][] tmp = new float[2000][2000];
+        for(float[] row : tmp) {
+            for (float value : row) {
+                value = rnd.nextFloat();
+            }
+        }
+        return tmp;
     }
 }
