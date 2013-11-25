@@ -29,7 +29,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
             MPI.Init(args);
             rank = MPI.COMM_WORLD.Rank();
             clusterSize = MPI.COMM_WORLD.Size();
-            workerCount = Integer.parseInt(args[1]);
+            workerCount = Integer.parseInt(args[1]) * clusterSize;
         } catch (MPIException e) {
             e.printStackTrace();
         }
@@ -49,7 +49,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     }
 
     /**
-     * Returns the workerc ount given as program parameter
+     * Returns the worker count given as program parameter
      * @return the worker count
      */
     @Override
