@@ -50,9 +50,9 @@ public class JGFLUFactBench extends Linpack implements JGFSection2{
     lda = ldaa + 1;
 
     if(rank==0) {
-      a = new double[ldaa][lda];
-      b = new double [ldaa];
-      x = new double [ldaa];
+      a = new float[ldaa][lda];
+      b = new float [ldaa];
+      x = new float [ldaa];
     }
 
     ipvt = new int [ldaa];
@@ -70,7 +70,7 @@ public class JGFLUFactBench extends Linpack implements JGFSection2{
       }
     }
  
-    buf_a = new double[p_ldaa][lda];
+    buf_a = new float[p_ldaa][lda];
     list = new int [ldaa];
     buf_list = new int [ldaa];
 
@@ -146,8 +146,8 @@ public class JGFLUFactBench extends Linpack implements JGFSection2{
   public void JGFvalidate(){
 
     int i;
-    double eps,residn;
-    final double ref[] = {6.0, 12.0, 20.0};
+    float eps,residn;
+    final float ref[] = {6.0, 12.0, 20.0};
 
     if(rank==0) {
     for (i = 0; i < n; i++) {
@@ -166,7 +166,7 @@ public class JGFLUFactBench extends Linpack implements JGFSection2{
       normx = (normx > abs(x[i])) ? normx : abs(x[i]);
     }
 
-    eps =  epslon((double)1.0);
+    eps =  epslon((float)1.0);
     residn = resid/( n*norma*normx*eps );
     
     if (residn > 20) {
