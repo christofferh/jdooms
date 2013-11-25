@@ -11,6 +11,7 @@ public interface DSObjectSpace {
         Read, ReadWrite;
     }
     int getRank();
+    int getWokerCount();
     Object getObject(int ID, Permission permission);
     void putObject(Object obj, Classifier classifier);
     Object dsNew(String clazz, int ID) throws InstantiationException, IllegalAccessException;

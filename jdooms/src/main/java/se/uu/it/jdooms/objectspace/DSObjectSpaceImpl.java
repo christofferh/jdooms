@@ -46,6 +46,11 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         return rank;
     }
 
+    @Override
+    public int getWokerCount() {
+        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
     /**
      * Returns the cluster size
      * @return the cluster size
