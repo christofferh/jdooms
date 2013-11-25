@@ -57,27 +57,27 @@ import mpi.*;
 
 public class Linpack {
 
-  double a[][];
-  double b[];
-  double x[];
-  double ops,total,norma,normx;
-  double resid,time;
-  double kf;
+  float a[][];
+  float b[];
+  float x[];
+  float ops,total,norma,normx;
+  float resid,time;
+  float kf;
   int n,i,ntimes,info,lda,ldaa,kflops;
   int ipvt[];
  
-  double buf_a[][];
+  float buf_a[][];
   int list[];   
   int buf_list[];
 
-  final double abs (double d) {
+  final float abs (float d) {
     return (d >= 0) ? d : -d;
   }
 
   
-  final double matgen (double a[][], int lda, int n, double b[])
+  final float matgen (float a[][], int lda, int n, float b[])
   {
-    double norma;
+    float norma;
     int init, i, j;
     
     init = 1325;
@@ -150,12 +150,12 @@ matrix in column order. --dmd 3/3/97
     
     blas daxpy,dscal,idamax
   */
-  final int dgefa( double a[][], int lda, int n, int ipvt[]) throws MPIException
+  final int dgefa( float a[][], int lda, int n, int ipvt[]) throws MPIException
   {
-    double[] col_k = null;
-    double[] col_j = null;
-    double[] buf_col_k = new double [lda]; 
-    double t;
+    float[] col_k = null;
+    float[] col_j = null;
+    float[] buf_col_k = new float [lda];
+    float t;
     int j,k,kp1,nm1;
     int l = 0;
     int info;
@@ -219,7 +219,7 @@ matrix in column order. --dmd 3/3/97
 
 /* Broadcast the copy buf_col_k to all processes */
 
-       MPI.COMM_WORLD.Bcast(buf_col_k,0,buf_col_k.length,MPI.DOUBLE,list[k]);
+       MPI.COMM_WORLD.Bcast(buf_col_k,0,buf_col_k.length,MPI.FLOAT,list[k]);
        tmp_l[0] = l;
        MPI.COMM_WORLD.Bcast(tmp_l,0,tmp_l.length,MPI.INT,list[k]);
        l = tmp_l[0];
@@ -336,9 +336,9 @@ matrix in column order. --dmd 3/3/97
     
     blas daxpy,ddot
   */
-  final void dgesl( double a[][], int lda, int n, int ipvt[], double b[], int job)
+  final void dgesl( float a[][], int lda, int n, int ipvt[], float b[], int job)
   {
-    double t;
+    float t;
     int k,kb,l,nm1,kp1;
 
     nm1 = n - 1;
@@ -401,8 +401,8 @@ matrix in column order. --dmd 3/3/97
     constant times a vector plus a vector.
     jack dongarra, linpack, 3/11/78.
   */
-  final void daxpy( int n, double da, double dx[], int dx_off, int incx,
-	      double dy[], int dy_off, int incy)
+  final void daxpy( int n, float da, float dx[], int dx_off, int incx,
+	      float dy[], int dy_off, int incy)
   {
     int i,ix,iy;
 
@@ -437,10 +437,10 @@ matrix in column order. --dmd 3/3/97
     forms the dot product of two vectors.
     jack dongarra, linpack, 3/11/78.
   */
-  final double ddot( int n, double dx[], int dx_off, int incx, double dy[],
+  final float ddot( int n, float dx[], int dx_off, int incx, float dy[],
 	       int dy_off, int incy)
   {
-    double dtemp;
+    float dtemp;
     int i,ix,iy;
 
     dtemp = 0;
@@ -477,7 +477,7 @@ matrix in column order. --dmd 3/3/97
     scales a vector by a constant.
     jack dongarra, linpack, 3/11/78.
   */
-  final void dscal( int n, double da, double dx[], int dx_off, int incx)
+  final void dscal( int n, float da, float dx[], int dx_off, int incx)
   {
     int i,nincx;
 
@@ -505,9 +505,9 @@ matrix in column order. --dmd 3/3/97
     finds the index of element having max. absolute value.
     jack dongarra, linpack, 3/11/78.
   */
-  final int idamax( int n, double dx[], int dx_off, int incx)
+  final int idamax( int n, float dx[], int dx_off, int incx)
   {
-    double dmax, dtemp;
+    float dmax, dtemp;
     int i, ix, itemp=0;
 
     if (n < 1) {
@@ -576,9 +576,9 @@ matrix in column order. --dmd 3/3/97
   
     this version dated 4/6/83.
   */
-  final double epslon (double x)
+  final float epslon (float x)
   {
-    double a,b,c,eps;
+    float a,b,c,eps;
 
     a = 4.0e0/3.0e0;
     eps = 0;
@@ -613,7 +613,7 @@ matrix in column order. --dmd 3/3/97
     
     m double [ldm][n2], matrix of n1 rows and n2 columns
   */
-  final void dmxpy ( int n1, double y[], int n2, int ldm, double x[], double m[][])
+  final void dmxpy ( int n1, float y[], int n2, int ldm, float x[], float m[][])
   {
     int j,i;
 
