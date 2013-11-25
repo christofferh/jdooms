@@ -40,7 +40,7 @@ public class DSObjectReceiver {
             try {
                 mps = MPI.COMM_WORLD.Recv(receiveBuffer, 0, 1, MPI.OBJECT, MPI.ANY_SOURCE, MPI.ANY_TAG);
             } catch (MPIException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                e.printStackTrace();
             }
             switch (mps.getTag()) {
                 case 10:
@@ -58,7 +58,7 @@ public class DSObjectReceiver {
                         try {
                             MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, mps.getSource(), 10);
                         } catch (MPIException e) {
-                            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                            e.printStackTrace();
                         }
                     }
                     break;
