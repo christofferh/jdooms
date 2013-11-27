@@ -22,7 +22,7 @@ clean:
 	rm -fr out
 
 run:
-	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -cp .:out/:../jdooms/classes/artifacts/jdooms_jar/jdooms.jar se.uu.it.jdooms.node.Server se.uu.it.jdooms.worker.java.Worker
+	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -cp .:out/:../jdooms/classes/artifacts/jdooms_jar/jdooms.jar se.uu.it.jdooms.node.Server se.uu.it.jdooms.worker.java.Worker 2
 
 shit:
 	$(info dump..)
