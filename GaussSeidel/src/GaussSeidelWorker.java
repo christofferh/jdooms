@@ -1,6 +1,7 @@
 import se.uu.it.jdooms.objectspace.DSObjectSpace;
 import se.uu.it.jdooms.workerdispatcher.DSObject;
 
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -11,20 +12,22 @@ import java.util.Random;
  * To change this template use File | Settings | File Templates.
  */
 public class GaussSeidelWorker implements DSObject{
-    DSObjectSpace objectSpace;
+    DSObjectSpace dsObjectSpace;
 
     @Override
     public void Init(DSObjectSpace dsObjectSpace) {
         //To change body of implemented methods use File | Settings | File Templates.
-        objectSpace = dsObjectSpace;
+        this.dsObjectSpace = dsObjectSpace;
     }
+
+
 
     @Override
     public void run() {
-        //To change body of implemented methods use File | Settings | File Templates.
-        if(objectSpace.getRank() == 0) {
+
+        if(dsObjectSpace.getRank() == 0) {
             float[][] matrix = generateMatrix();
-            int workerCount =  32;
+            int workerCount =  dsObjectSpace.getWorkerCount();
 
             int matrixLength = matrix.length;
             int[] distribution = new int[workerCount];
@@ -32,15 +35,78 @@ public class GaussSeidelWorker implements DSObject{
                 distribution[i] = (matrixLength/workerCount) + matrixLength%workerCount;
                 matrixLength -= matrixLength%workerCount;
             }
-            for (int dist : distribution) {
-                System.out.println("value: " + dist);
+
+            int i = 0;
+            int start = 0;
+            int end = 0;
+            for (int columns : distribution) {
+                end += columns - 1;
+                try {
+                    ((Matrix)dsObjectSpace.dsNew("Matrix", i)).Init(copyOfRange(matrix, start, end), start, end);
+                } catch (InstantiationException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                }
+                start += columns;
+                i++;
             }
         }
-        else {
+        dsObjectSpace.synchronize();
 
+        int rank = dsObjectSpace.getRank();
+
+
+        int row = 1;
+        while (true) {
+
+            try {
+                if (rank < 1) {
+                    Matrix matN1 = (Matrix)dsObjectSpace.dsNew("Matrix", rank);
+                    Matrix matN2 = (Matrix)dsObjectSpace.dsNew("Matrix", rank + 1);
+                    // do work here
+                    row++;
+                } else if (rank == dsObjectSpace.getWorkerCount() - 1) {
+                    Matrix matN0 = (Matrix)dsObjectSpace.dsNew("Matrix", rank - 1);
+                    Matrix matN1 = (Matrix)dsObjectSpace.dsNew("Matrix", rank);
+                    if (matN0.isDone(row)) {
+                        // do work here
+                        row++;
+                    }
+                } else {
+                    Matrix matN0 = (Matrix)dsObjectSpace.dsNew("Matrix", rank - 1);
+                    Matrix matN1 = (Matrix)dsObjectSpace.dsNew("Matrix", rank);
+                    Matrix matN2 = (Matrix)dsObjectSpace.dsNew("Matrix", rank + 1);
+                    if (matN0.isDone(row)) {
+                        // do work here
+                        row++;
+                    }
+                }
+            } catch (InstantiationException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+
+            dsObjectSpace.synchronize();
         }
+
+
+
+
+
     }
 
+
+    private float[][] copyOfRange(float[][] matrix, int start, int end) {
+        float[][] result = new float[end - start][matrix[0].length];
+        int i = 0;
+        for (float[] row : result) {
+            row = Arrays.copyOfRange(matrix[i], start, end);
+            i++;
+        }
+        return result;
+    }
 
     private float[][] generateMatrix() {
         Random rnd = new Random();
