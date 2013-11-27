@@ -52,4 +52,11 @@ public class DSObjectCommunication implements Runnable {
     public void getObject(int ID) {
         sender.getObject(ID);
     }
+
+    /**
+     * Synchronize call
+     */
+    public void synchronize() {
+        sender.barrier();
+    }
 }
