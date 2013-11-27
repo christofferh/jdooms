@@ -40,6 +40,45 @@ public class Worker implements DSObject {
                 e.printStackTrace();
             }
         }
+
+        if (objectSpace.getNodeID() == 0) {
+            if (objectSpace.getWorkerID() == 0) {
+                System.out.println("Worker " + objectSpace.getWorkerID() + " reached barrier");
+                objectSpace.synchronize();
+                System.out.println("NodeID: " + objectSpace.getNodeID() + " got out of barrier");
+            } else {
+                try {
+                    Thread.sleep(500);
+                    System.out.println("Worker " + objectSpace.getWorkerID() + " reached barrier");
+                    objectSpace.synchronize();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        } else {
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (objectSpace.getWorkerID() == 2) {
+                System.out.println("Worker " + objectSpace.getWorkerID() + " reached barrier");
+                objectSpace.synchronize();
+                System.out.println("NodeID: " + objectSpace.getNodeID() + " got out of barrier");
+            } else {
+                try {
+                    Thread.sleep(2000);
+                    System.out.println("Worker " + objectSpace.getWorkerID() + " reached barrier");
+                    objectSpace.synchronize();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+
+
     }
 
     @Override
