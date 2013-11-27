@@ -237,7 +237,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
             objectSpace.put(((DSObjectBase) obj).getID(), obj);
         }
     }
-
+!
     /**
      * Bytecode injection test
      */
