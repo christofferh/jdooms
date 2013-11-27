@@ -45,7 +45,6 @@ public class Worker implements DSObject {
             if (objectSpace.getWorkerID() == 0) {
                 System.out.println("Worker " + objectSpace.getWorkerID() + " reached barrier");
                 objectSpace.synchronize();
-                System.out.println("NodeID: " + objectSpace.getNodeID() + " got out of barrier");
             } else {
                 try {
                     Thread.sleep(500);
@@ -58,14 +57,13 @@ public class Worker implements DSObject {
 
         } else {
             try {
-                Thread.sleep(10000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             if (objectSpace.getWorkerID() == 2) {
                 System.out.println("Worker " + objectSpace.getWorkerID() + " reached barrier");
                 objectSpace.synchronize();
-                System.out.println("NodeID: " + objectSpace.getNodeID() + " got out of barrier");
             } else {
                 try {
                     Thread.sleep(2000);
@@ -78,7 +76,7 @@ public class Worker implements DSObject {
 
         }
 
-
+        System.out.println(objectSpace.getNodeID() + " passed all barriers");
     }
 
     @Override
