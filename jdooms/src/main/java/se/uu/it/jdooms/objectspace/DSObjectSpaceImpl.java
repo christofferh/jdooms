@@ -8,6 +8,8 @@ import org.apache.log4j.Logger;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 
 /**
  * Implementation of the Distributed Object Space
@@ -15,8 +17,9 @@ import java.util.HashMap;
 public class DSObjectSpaceImpl implements DSObjectSpace {
     private static final Logger logger = Logger.getLogger(DSObjectSpaceImpl.class);
     private HashMap<Integer, Object> objectSpace;
+    private CyclicBarrier barrier;
 
-    private int rank;
+    private int nodeID;
     private int clusterSize;
     private int workerCount;
 
@@ -27,9 +30,9 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         objectSpace = new HashMap<Integer, Object>();
         try {
             MPI.Init(args);
-            rank = MPI.COMM_WORLD.Rank();
+            nodeID = MPI.COMM_WORLD.Rank();
             clusterSize = MPI.COMM_WORLD.Size();
-            workerCount = Integer.parseInt(args[1]);
+            workerCount = Integer.valueOf(args[1]);
         } catch (MPIException e) {
             e.printStackTrace();
         }
@@ -37,6 +40,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         dsObjectCommunication = new DSObjectCommunication(this);
         dsObjectCommThread = new Thread(dsObjectCommunication);
         dsObjectCommThread.start();
+        barrier = new CyclicBarrier(workerCount, new DSObjectSynchronize(dsObjectCommunication));
     }
 
     /**
@@ -44,12 +48,21 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      * @return the node Id
      */
     @Override
-    public int getRank() {
-        return rank;
+    public int getNodeID() {
+        return nodeID;
     }
 
     /**
-     * Returns the workerc ount given as program parameter
+     * Return the worker ID.
+     * @return
+     */
+    @Override
+    public int getWorkerID() {
+        return Integer.parseInt(Thread.currentThread().getName());
+    }
+
+    /**
+     * Returns the worker count given as program parameter
      * @return the worker count
      */
     @Override
@@ -230,5 +243,18 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      */
     public void beforeMethodTest() {
         logger.debug("Before Method");
+    }
+
+    /**
+     * Barrier call
+     */
+    public void synchronize() {
+        try {
+            barrier.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
+        }
     }
 }

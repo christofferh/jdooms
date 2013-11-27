@@ -30,7 +30,7 @@ public class DSObjectSender {
 
         /* @TODO: Make non-blocking */
         for (int node = 0; node < dsObjectSpace.getClusterSize(); node++) {
-            if (node != dsObjectSpace.getRank()) {
+            if (node != dsObjectSpace.getNodeID()) {
                 try {
                     MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, node, 10);
                 } catch (MPIException e) {
@@ -49,7 +49,7 @@ public class DSObjectSender {
         sendBuffer[0] = (Integer) ID;
         /* @TODO: Make non-blocking */
         for (int node = 0; node < dsObjectSpace.getClusterSize(); node++) {
-            if (node != dsObjectSpace.getRank()) {
+            if (node != dsObjectSpace.getNodeID()) {
                 try {
                     MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, node, 20);
                 } catch (MPIException e) {
@@ -58,6 +58,17 @@ public class DSObjectSender {
             }
         }
 
+    }
+
+    /**
+     * Send a MPI barrier call to all the other nodes
+     */
+    public void barrier() {
+        try {
+            MPI.COMM_WORLD.Barrier();
+        } catch (MPIException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

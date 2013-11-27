@@ -52,4 +52,12 @@ public class DSObjectCommunication implements Runnable {
     public void getObject(int ID) {
         sender.getObject(ID);
     }
+
+    /**
+     * Synchronize call
+     */
+    public void synchronize() {
+        logger.debug(dsObjectSpace.getNodeID() + " sent MPI Barrier");
+        sender.barrier();
+    }
 }
