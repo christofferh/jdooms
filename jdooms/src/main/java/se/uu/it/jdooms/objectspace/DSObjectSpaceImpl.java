@@ -67,7 +67,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      */
     @Override
     public int getWorkerCount() {
-        return workerCount;
+        return workerCount * clusterSize;
     }
 
     /**
