@@ -9,13 +9,13 @@ import se.uu.it.jdooms.objectspace.DSObjectSpaceImpl;
 public class DSObjectDispatcher {
     private static final Logger logger = Logger.getLogger(DSObjectDispatcher.class);
     private DSObjectSpaceImpl dsObjectSpace;
-    private int numberOfWorkers;
+    private int workersPerNode;
     private int beginWorkerID;
 
     public DSObjectDispatcher(DSObjectSpaceImpl dsObjectSpace){
         this.dsObjectSpace = dsObjectSpace;
-        this.numberOfWorkers = dsObjectSpace.getWorkerCount();
-        this.beginWorkerID = dsObjectSpace.getNodeID() * numberOfWorkers;
+        this.workersPerNode = dsObjectSpace.getWorkerCount() / dsObjectSpace.getClusterSize();
+        this.beginWorkerID = dsObjectSpace.getNodeID() * workersPerNode;
     }
 
     /**
@@ -35,7 +35,7 @@ public class DSObjectDispatcher {
         }
         assert worker != null;
         worker.Init(dsObjectSpace);
-        for (int i = beginWorkerID; i < beginWorkerID + numberOfWorkers; i++)
+        for (int i = beginWorkerID; i < beginWorkerID + workersPerNode; i++)
         {
             String workerID = Integer.toString(i);
             new Thread(worker, workerID).start();
