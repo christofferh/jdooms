@@ -25,9 +25,18 @@ public class GaussSeidelWorker implements DSObject{
     @Override
     public void run() {
 
-        if(dsObjectSpace.getRank() == 0) {
+        if(dsObjectSpace.getNodeID() == 0) {
             float[][] matrix = generateMatrix();
             int workerCount =  dsObjectSpace.getWorkerCount();
+            try {
+                Matrix org = ((Matrix)dsObjectSpace.dsNew("Matrix", 100));
+                org.Init(matrix, 0, 1);
+                System.out.println(org);
+            } catch (InstantiationException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
 
             int matrixLength = matrix.length;
             int[] distribution = new int[workerCount];
@@ -42,7 +51,7 @@ public class GaussSeidelWorker implements DSObject{
             for (int columns : distribution) {
                 end += columns - 1;
                 try {
-                    ((Matrix)dsObjectSpace.dsNew("Matrix", i)).Init(copyOfRange(matrix, start, end), start, end);
+                    ((Matrix)dsObjectSpace.dsNew("Matrix", i)).Init(copyOfRange(matrix, start, end), i, distribution.length);
                 } catch (InstantiationException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                 } catch (IllegalAccessException e) {
@@ -54,34 +63,51 @@ public class GaussSeidelWorker implements DSObject{
         }
         dsObjectSpace.synchronize();
 
-        int rank = dsObjectSpace.getRank();
+        int workerID = dsObjectSpace.getWorkerID();
 
 
-        int row = 1;
-        while (true) {
 
+        for (int n = 0; n < 1; n++){ // while the tolerance criteria is not met
+            int row = 1;
             try {
-                if (rank < 1) {
-                    Matrix matN1 = (Matrix)dsObjectSpace.dsNew("Matrix", rank);
-                    Matrix matN2 = (Matrix)dsObjectSpace.dsNew("Matrix", rank + 1);
+                Matrix id = (Matrix)dsObjectSpace.dsNew("Matrix", workerID);
+                System.out.println(id);
+                /*if (workerID < 1) { //leftmost
+                    Matrix left = (Matrix)dsObjectSpace.dsNew("Matrix", workerID);
+                    Matrix right = (Matrix)dsObjectSpace.dsNew("Matrix", workerID + 1);
+
+                    for (row = 1; row < left.matrix.length; row+=2) {
+                        int column;
+                        for (column = 1; column < right.matrix[row].length - 1; column+=2) {
+                            left.matrix[row][column] = (left.matrix[row - 1][column] + left.matrix[row + 1][column] + left.matrix[row][column - 1] + left.matrix[row][column + 1])/4;
+                        }
+                        left.matrix[row][column] = (left.matrix[row - 1][column] + left.matrix[row + 1][column] + left.matrix[row][column - 1] + right.matrix[row][0])/4;
+                    }
+                    for (row = 2; row < left.matrix.length; row+=2) {
+                        int column;
+                        for (column = 1; column < right.matrix[row].length - 1; column+=2) {
+                            left.matrix[row][column] = (left.matrix[row - 1][column] + left.matrix[row + 1][column] + left.matrix[row][column - 1] + left.matrix[row][column + 1])/4;
+                        }
+                        left.matrix[row][column] = (left.matrix[row - 1][column] + left.matrix[row + 1][column] + left.matrix[row][column - 1] + right.matrix[row][0])/4;
+                    }
+
+                } else if (workerID == dsObjectSpace.getWorkerCount() - 1) { //rightmost
+                    Matrix left = (Matrix)dsObjectSpace.dsNew("Matrix", workerID - 1);
+                    Matrix right = (Matrix)dsObjectSpace.dsNew("Matrix", workerID);
+                    int column = 0;
+                    right.matrix[row][column] = (right.matrix[row - 1][column] + right.matrix[row + 1][column] + left.matrix[row][left.matrix[row].length] + right.matrix[row][column + 1])/4;
+                    for (column = 1; column < right.matrix[row].length; column++) {
+                        right.matrix[row][column] = (right.matrix[row - 1][column] + right.matrix[row + 1][column] + right.matrix[row][column - 1] + right.matrix[row][column + 1])/4;
+                    }
+                    row++;
+                } else { //in the middle
+                    Matrix matN0 = (Matrix)dsObjectSpace.dsNew("Matrix", workerID - 1);
+                    Matrix matN1 = (Matrix)dsObjectSpace.dsNew("Matrix", workerID);
+                    Matrix matN2 = (Matrix)dsObjectSpace.dsNew("Matrix", workerID + 1);
+                    int column = 1;
                     // do work here
                     row++;
-                } else if (rank == dsObjectSpace.getWorkerCount() - 1) {
-                    Matrix matN0 = (Matrix)dsObjectSpace.dsNew("Matrix", rank - 1);
-                    Matrix matN1 = (Matrix)dsObjectSpace.dsNew("Matrix", rank);
-                    if (matN0.isDone(row)) {
-                        // do work here
-                        row++;
-                    }
-                } else {
-                    Matrix matN0 = (Matrix)dsObjectSpace.dsNew("Matrix", rank - 1);
-                    Matrix matN1 = (Matrix)dsObjectSpace.dsNew("Matrix", rank);
-                    Matrix matN2 = (Matrix)dsObjectSpace.dsNew("Matrix", rank + 1);
-                    if (matN0.isDone(row)) {
-                        // do work here
-                        row++;
-                    }
-                }
+                }*/
             } catch (InstantiationException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             } catch (IllegalAccessException e) {
@@ -90,12 +116,9 @@ public class GaussSeidelWorker implements DSObject{
 
             dsObjectSpace.synchronize();
         }
-
-
-
-
-
     }
+
+
 
 
     private float[][] copyOfRange(float[][] matrix, int start, int end) {
@@ -110,7 +133,7 @@ public class GaussSeidelWorker implements DSObject{
 
     private float[][] generateMatrix() {
         Random rnd = new Random();
-        float[][] tmp = new float[2000][2000];
+        float[][] tmp = new float[400][400];
         for(float[] row : tmp) {
             for (float value : row) {
                 value = rnd.nextFloat();

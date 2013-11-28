@@ -6,19 +6,21 @@
  * To change this template use File | Settings | File Templates.
  */
 public class Matrix {
-    private float[][] matrix;
+    public float[][] matrix;
     private int start;
     private int end;
     private boolean[] doneRows;
+    private int columnID;
+    private int nrOfColumns;
 
     public Matrix() {
 
     }
 
-    public void Init(float[][] matrix, int start, int end) {
+    public void Init(float[][] matrix, int columnID, int nrOfColumns) {
         this.matrix = matrix;
-        this.start = start;
-        this.end = end;
+        this.columnID = columnID;
+        this.nrOfColumns = nrOfColumns;
         doneRows = new boolean[matrix.length];
         for (boolean row : doneRows) {
             row = false;
@@ -31,8 +33,33 @@ public class Matrix {
         return doneRows[row];
     }
 
+    public void calculateRed(Matrix neighbour) {
+
+    }
+
+    public void calculateRed(Matrix left, Matrix right) {
+
+    }
+
+    public void calculateBlack() {
+
+    }
+
     @Override
     public String toString() {
-        return "[123344,123123234,123123]";
+        StringBuilder sb = new StringBuilder();
+        sb.append("Matrix ID: " + columnID);
+        sb.append(System.getProperty("Line.separator"));
+        for (float[] row : matrix) {
+            System.out.print("[");
+            sb.append("[");
+            for (float value : row) {
+                sb.append(value);
+                sb.append( ", ");
+            }
+            sb.append("]");
+            sb.append(System.getProperty("Line.separator"));
+        }
+        return sb.toString();
     }
 }
