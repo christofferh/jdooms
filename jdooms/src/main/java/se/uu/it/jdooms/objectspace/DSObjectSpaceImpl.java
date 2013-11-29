@@ -226,6 +226,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
             ClassLoader cl = this.getClass().getClassLoader();
             Class tmp_cl = (Class) findLoadedClass.invoke(cl, clazz);
             if (tmp_cl == null) {
+                logger.debug("Creating and sending DSclass");
                 dsObjectCommunication.loadDSClass(clazz);
                 ClassPool classPool = ClassPool.getDefault();
                 try {
@@ -260,10 +261,11 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         obj = getObject(ID, Permission.ReadWrite); //What kind of permission should we use here.
 
         if(obj != null ) {
-            logger.debug("fetched object");
+            logger.debug("Fetched object from local cache");
             return obj;
         } else {
             try {
+                logger.debug("Creating object and putting in local cache");
                 ClassLoader cl = this.getClass().getClassLoader();
                 Class tmp_clazz = (Class) findLoadedClass.invoke(cl, clazz);
                 obj = tmp_clazz.newInstance();
