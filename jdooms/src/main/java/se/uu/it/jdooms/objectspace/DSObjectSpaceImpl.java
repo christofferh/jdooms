@@ -38,7 +38,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         }
 
         dsObjectCommunication = new DSObjectCommunication(this);
-        dsObjectCommThread = new Thread(dsObjectCommunication);
+        dsObjectCommThread = new Thread(dsObjectCommunication, "COMM-" + nodeID);
         dsObjectCommThread.start();
         barrier = new CyclicBarrier(workerCount, new DSObjectSynchronize(dsObjectCommunication));
     }
