@@ -26,24 +26,23 @@ public class DSObjectDispatcher {
         DSObject worker = null;
         try {
             worker = instantiate(className, DSObject.class);
+            worker.Init(dsObjectSpace);
+            for (int i = beginWorkerID; i < beginWorkerID + workersPerNode; i++)
+            {
+                String workerID = Integer.toString(i);
+                new Thread(worker, workerID).start();
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
-        }
-        assert worker != null;
-        worker.Init(dsObjectSpace);
-        for (int i = beginWorkerID; i < beginWorkerID + workersPerNode; i++)
-        {
-            String workerID = Integer.toString(i);
-            new Thread(worker, workerID).start();
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
     }
 

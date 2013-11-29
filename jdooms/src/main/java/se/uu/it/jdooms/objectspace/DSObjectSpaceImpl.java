@@ -121,8 +121,9 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    @Override
+    /*@Override
     public Object dsNew(String clazz, int ID) throws IllegalAccessException, InstantiationException { //Should be synchronized
+        //make sure the ds class is loaded before trying to get it
         Object obj = null;
         obj = getObject(ID, Permission.ReadWrite); //What kind of permission should we use here.
 
@@ -202,6 +203,76 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
                 e.printStackTrace();
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
+            }
+            return obj;
+        }
+    }*/
+
+    /**
+     * Distributed new
+     * @param clazz class to be instantiated
+     * @param ID uniquely identifiable number to the returning object
+     * @return new instance of the input clazz
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
+    @Override
+    public Object dsNew(String clazz, int ID) throws IllegalAccessException, InstantiationException { //Should be synchronized
+        //make sure the ds class is loaded before trying to get it
+        Method findLoadedClass = null;
+        try {
+            findLoadedClass = ClassLoader.class.getDeclaredMethod("findLoadedClass", new Class[] { String.class });
+            findLoadedClass.setAccessible(true);
+            ClassLoader cl = this.getClass().getClassLoader();
+            Class tmp_cl = (Class) findLoadedClass.invoke(cl, clazz);
+            if (tmp_cl == null) {
+                ClassPool classPool = ClassPool.getDefault();
+                try {
+                    String path = System.getProperty("user.dir");
+                    classPool.appendClassPath(path + "/out/production/jdooms-worker");
+                    classPool.appendClassPath(path + "/../jdooms/bin");
+                } catch (NotFoundException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    CtClass ctClass = classPool.get(clazz);
+                    CtClass superCtClass = classPool.get("se.uu.it.jdooms.objectspace.DSObjectBase");
+                    CtClass ctSerializable = classPool.get("java.io.Serializable");
+
+                    if (ctClass.isFrozen()) { ctClass.defrost(); }
+                    ctClass.setSuperclass(superCtClass);
+                    ctClass.addInterface(ctSerializable);
+                    ctClass.toClass();
+                } catch (CannotCompileException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                } catch (NotFoundException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                }
+            }
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
+        Object obj = null;
+        obj = getObject(ID, Permission.ReadWrite); //What kind of permission should we use here.
+
+        if(obj != null ) {
+            logger.debug("fetched object");
+            return obj;
+        } else {
+            try {
+                ClassLoader cl = this.getClass().getClassLoader();
+                Class tmp_clazz = (Class) findLoadedClass.invoke(cl, clazz);
+                obj = tmp_clazz.newInstance();
+
+                ((DSObjectBase)obj).setClassifier(Classifier.Shared);
+                ((DSObjectBase)obj).setID(ID);
+
+                putObject(obj, Classifier.Shared);
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
             return obj;
         }
