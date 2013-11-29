@@ -250,6 +250,8 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
                 } catch (NotFoundException e) {
                     e.printStackTrace();
                 }
+            } else {
+
             }
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
@@ -279,6 +281,11 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
             }
             return obj;
         }
+    }
+
+    @Override
+    public Object getObject(int ID) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     /**

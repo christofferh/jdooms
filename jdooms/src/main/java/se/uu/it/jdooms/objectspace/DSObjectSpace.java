@@ -16,5 +16,6 @@ public interface DSObjectSpace {
     Object getObject(int ID, Permission permission);
     void putObject(Object obj, Classifier classifier);
     Object dsNew(String clazz, int ID) throws InstantiationException, IllegalAccessException;
+    Object getObject(int ID);
     void synchronize();
 }
