@@ -54,6 +54,14 @@ public class DSObjectCommunication implements Runnable {
     }
 
     /**
+     * Sends class to load on other nodes
+     * @param clazz
+     */
+    public void loadDSClass(String clazz) {
+        sender.loadDSClass(clazz);
+    }
+
+    /**
      * Synchronize call
      */
     public void synchronize() {

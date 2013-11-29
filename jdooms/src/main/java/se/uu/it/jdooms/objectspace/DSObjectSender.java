@@ -63,11 +63,28 @@ public class DSObjectSender {
     /**
      * Send a MPI barrier call to all the other nodes
      */
-    public void barrier() {
+    protected void barrier() {
         try {
             MPI.COMM_WORLD.Barrier();
         } catch (MPIException e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     *
+     * @param clazz
+     */
+    protected void loadDSClass(String clazz) {
+        char[] sendBuffer = clazz.toCharArray();
+        for (int node = 0; node < dsObjectSpace.getClusterSize(); node++) {
+            if (node != dsObjectSpace.getNodeID()) {
+                try {
+                    MPI.COMM_WORLD.Send(sendBuffer, 0, sendBuffer.length, MPI.CHAR, node, 30);
+                } catch (MPIException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
