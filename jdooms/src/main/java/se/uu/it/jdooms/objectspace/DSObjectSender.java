@@ -76,11 +76,12 @@ public class DSObjectSender {
      * @param clazz
      */
     protected void loadDSClass(String clazz) {
-        char[] sendBuffer = clazz.toCharArray();
+        Object[] sendBuffer = new Object[1];
+        sendBuffer[0] = clazz;
         for (int node = 0; node < dsObjectSpace.getClusterSize(); node++) {
             if (node != dsObjectSpace.getNodeID()) {
                 try {
-                    MPI.COMM_WORLD.Send(sendBuffer, 0, sendBuffer.length, MPI.CHAR, node, 30);
+                    MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, node, 30);
                 } catch (MPIException e) {
                     e.printStackTrace();
                 }

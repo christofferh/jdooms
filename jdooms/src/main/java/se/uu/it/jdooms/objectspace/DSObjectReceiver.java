@@ -71,6 +71,9 @@ public class DSObjectReceiver {
                     }
                     break;
                 case 30:
+                    logger.debug("Got tag " + mps.getTag() + " from node " + mps.getSource() + " (loadDSObject)");
+                    String clazz = (String) receiveBuffer[0];
+                    loadDSClass(clazz);
                     break;
                 default:
                     break;
