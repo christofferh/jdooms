@@ -226,6 +226,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
             ClassLoader cl = this.getClass().getClassLoader();
             Class tmp_cl = (Class) findLoadedClass.invoke(cl, clazz);
             if (tmp_cl == null) {
+                dsObjectCommunication.loadDSClass(clazz);
                 ClassPool classPool = ClassPool.getDefault();
                 try {
                     String path = System.getProperty("user.dir");
@@ -244,15 +245,15 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
                     ctClass.addInterface(ctSerializable);
                     ctClass.toClass();
                 } catch (CannotCompileException e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    e.printStackTrace();
                 } catch (NotFoundException e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    e.printStackTrace();
                 }
             }
         } catch (NoSuchMethodException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         } catch (InvocationTargetException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         }
 
         Object obj = null;
