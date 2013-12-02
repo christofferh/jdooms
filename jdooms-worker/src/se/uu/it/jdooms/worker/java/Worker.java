@@ -17,8 +17,7 @@ public class Worker implements DSObject {
     public void run() {
         System.out.println("Worker alive!");
 
-
-        for (int i = 0; i < 2; i++) {
+        /*for (int i = 0; i < 2; i++) {
             try {
                 ((DistributedTest)objectSpace.dsNew("se.uu.it.jdooms.worker.java.DistributedTest", i+1)).Test();
             } catch (InstantiationException e) {
@@ -39,9 +38,18 @@ public class Worker implements DSObject {
                 System.out.println("Illegal access exception");
                 e.printStackTrace();
             }
-        }
+        }*/
 
         if (objectSpace.getNodeID() == 0) {
+            try {
+                objectSpace.dsNew("se.uu.it.jdooms.worker.java.DistributedTest", 20);
+            } catch (InstantiationException e) {
+                System.out.println("Instantiation exception");
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                System.out.println("Illegal access exception");
+                e.printStackTrace();
+            }/*
             if (objectSpace.getWorkerID() == 0) {
                 System.out.println("Worker " + objectSpace.getWorkerID() + " reached barrier");
                 objectSpace.synchronize();
@@ -53,14 +61,17 @@ public class Worker implements DSObject {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            }
+            }*/
 
         } else {
             try {
                 Thread.sleep(1000);
+                DistributedTest test = (DistributedTest)objectSpace.getObject(20, DSObjectSpace.Permission.Read);
+                test.Test();
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }
+            }/*
             if (objectSpace.getWorkerID() == 2) {
                 System.out.println("Worker " + objectSpace.getWorkerID() + " reached barrier");
                 objectSpace.synchronize();
@@ -72,11 +83,11 @@ public class Worker implements DSObject {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            }
+            }*/
 
         }
 
-        System.out.println(objectSpace.getNodeID() + " passed all barriers");
+        //System.out.println(objectSpace.getNodeID() + " passed all barriers");
     }
 
     @Override

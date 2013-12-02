@@ -13,9 +13,8 @@ public interface DSObjectSpace {
     int getNodeID();
     int getWorkerID();
     int getWorkerCount();
-    Object getObject(int ID, Permission permission);
     void putObject(Object obj, Classifier classifier);
+    Object getObject(int ID, Permission permission);
     Object dsNew(String clazz, int ID) throws InstantiationException, IllegalAccessException;
-    Object getObject(int ID);
     void synchronize();
 }

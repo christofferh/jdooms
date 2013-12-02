@@ -8,7 +8,6 @@ import java.io.Serializable;
 public class DistributedTest{
 
     public DistributedTest() {
-
     }
 
     public void Test() {

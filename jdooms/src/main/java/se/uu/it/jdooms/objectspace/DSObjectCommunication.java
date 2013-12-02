@@ -3,17 +3,21 @@ package se.uu.it.jdooms.objectspace;
 import org.apache.log4j.Logger;
 import java.io.IOException;
 
+import se.uu.it.jdooms.objectspace.DSObjectSpace.Permission;
+
 /**
  * Communication class for MPI communication
  */
 public class DSObjectCommunication implements Runnable {
     private static final Logger logger = Logger.getLogger(DSObjectCommunication.class);
     private DSObjectSpaceImpl dsObjectSpace;
+    private DSObjectSpaceMap<Integer, Object> dsObjectSpaceMap;
     private DSObjectReceiver receiver;
     private DSObjectSender sender;
 
-    public DSObjectCommunication(DSObjectSpaceImpl dsObjectSpace) {
+    public DSObjectCommunication(DSObjectSpaceImpl dsObjectSpace, DSObjectSpaceMap dsObjectSpaceMap) {
         this.dsObjectSpace = dsObjectSpace;
+        this.dsObjectSpaceMap = dsObjectSpaceMap;
         receiver = new DSObjectReceiver(this.dsObjectSpace);
         sender = new DSObjectSender(this.dsObjectSpace);
     }
@@ -49,8 +53,25 @@ public class DSObjectCommunication implements Runnable {
      * Request object from the nodes
      * @param ID the ID of the object
      */
-    public void getObject(int ID) {
-        sender.getObject(ID);
+    public Object getObject(int ID, Permission permission) {
+        sender.getObject(ID, permission);
+        Object obj = null;
+        dsObjectSpaceMap.addObserver(this);
+
+        while (obj == null) {
+            obj = dsObjectSpaceMap.get(ID);
+            if (obj == null) {
+                try {
+                    synchronized (this) {
+                        this.wait();
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return  obj;
     }
 
     /**

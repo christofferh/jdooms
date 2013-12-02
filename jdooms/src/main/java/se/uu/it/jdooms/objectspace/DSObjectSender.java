@@ -15,7 +15,6 @@ public class DSObjectSender {
 
     public DSObjectSender(DSObjectSpaceImpl dsObjectSpace) {
         logger.debug("Initiated");
-
         this.dsObjectSpace = dsObjectSpace;
     }
 
@@ -43,8 +42,9 @@ public class DSObjectSender {
     /**
      * Requests the object with a certain hashcode from the cluster.
      * @param ID the ID of the object
+     * @param permission
      */
-    protected void getObject(int ID) {
+    protected void getObject(int ID, Permission permission) {
         Object[] sendBuffer = new Object[1];
         sendBuffer[0] = (Integer) ID;
         /* @TODO: Make non-blocking */
@@ -57,7 +57,6 @@ public class DSObjectSender {
                 }
             }
         }
-
     }
 
     /**

@@ -41,7 +41,6 @@ public class DSObjectReceiver {
     public void receive() {
         Object[] receiveBuffer = new Object[1];
         Object[] sendBuffer = new Object[1];
-
         // @TODO Make non-blocking
         while(receiving) {
             Status mps = null;
@@ -69,6 +68,7 @@ public class DSObjectReceiver {
                             e.printStackTrace();
                         }
                     }
+
                     break;
                 case 30:
                     logger.debug("Got tag " + mps.getTag() + " from node " + mps.getSource() + " (loadDSObject)");
