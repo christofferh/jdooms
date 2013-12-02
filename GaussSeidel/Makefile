@@ -10,7 +10,8 @@ ifndef JAVA_HOME
 $(error JAVA_HOME is not set)
 endif
 
-NP = 2
+NP = 1
+THREAD = 2
 
 all: compile
 
@@ -22,7 +23,7 @@ clean:
 	rm -fr out
 
 run:
-	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -cp .:out/:../jdooms/classes/artifacts/jdooms_jar/jdooms.jar se.uu.it.jdooms.node.Server GaussSeidelWorker
+	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -cp .:out/:../jdooms/classes/artifacts/jdooms_jar/jdooms.jar se.uu.it.jdooms.node.Server GaussSeidelWorker $(THREAD)
 
 shit:
 	$(info dump..)
