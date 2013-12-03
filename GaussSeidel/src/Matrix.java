@@ -26,43 +26,52 @@ public class Matrix {
         return sb.toString();
     }
 
-    public void calculate(Matrix left, Matrix right) {
-        for (int color = 0; color < 2; color++) {
-            if (left == null) { //leftmost
-                calculateMiddle(color);
-                calculateRight(color, right);
-            } else if (right == null) { //rightmost
-                calculateLeft(color, left);
-                calculateMiddle(color);
-            } else { //middle
-                calculateLeft(color, left);
-                calculateMiddle(color);
-                calculateRight(color, right);
-            }
+    public void calculateRed(Matrix left, Matrix right){
+        calculate(left, right, 0);
+    }
+
+    public void calculateBlack(Matrix left, Matrix right){
+        calculate(left, right, 1);
+    }
+
+    public void calculate(Matrix left, Matrix right, int color) {
+        if (left == null) { //leftmost
+            System.out.println("Leftmost ID: " + columnID);
+            calculateMiddle(color);
+            calculateRight(color, right);
+        } else if (right == null) { //rightmost
+            System.out.println("Rightmost ID: " + columnID);
+            calculateLeft(color, left);
+            calculateMiddle(color);
+        } else { //middle
+            System.out.println("Middle ID: " + columnID);
+            calculateLeft(color, left);
+            calculateMiddle(color);
+            calculateRight(color, right);
         }
     }
 
     private void calculateLeft(int color, Matrix left) {
-        for (int row = 1; row < matrix.length - 2; row += 2) {
+        for (int row = 1; row < matrix.length - 1; row++) {
             int column = 0;
             if ((row + color) % 2 == column % 2) {
-                matrix[row][column] = (matrix[row - 1][column] + matrix[row + 1][column] + left.matrix[row][left.matrix[row].length - 1] + matrix[row][column + 1]);
+                matrix[row][column] = (matrix[row - 1][column] + matrix[row + 1][column] + left.matrix[row][left.matrix[row].length - 1] + matrix[row][column + 1])/4;
             }
         }
     }
 
     private void calculateRight(int color, Matrix right) {
-        for (int row = 1; row < matrix.length - 2; row += 2) {
+        for (int row = 1; row < matrix.length - 1; row++) {
             int column = matrix[row].length - 1;
             if ((row + color) % 2 == column % 2) {
-                matrix[row][column] = (matrix[row - 1][column] + matrix[row + 1][column] + matrix[row][column - 1] + right.matrix[row][0]);
+                matrix[row][column] = (matrix[row - 1][column] + matrix[row + 1][column] + matrix[row][column - 1] + right.matrix[row][0])/4;
             }
         }
     }
 
     public void calculateMiddle(int color) {
-        for (int row = 1; row < matrix.length - 2; row++) {
-            for (int column = 1; column < matrix[row].length - 2; column++) {
+        for (int row = 1; row < matrix.length - 1; row++) {
+            for (int column = 1; column < matrix[row].length - 1; column++) {
                 if ((row + color) % 2 == column % 2) {
                     matrix[row][column] = (matrix[row - 1][column] + matrix[row + 1][column] + matrix[row][column - 1] + matrix[row][column + 1])/4;
                 }

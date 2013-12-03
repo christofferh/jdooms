@@ -15,9 +15,7 @@ public class GaussSeidelWorker implements DSObject{
 
     @Override
     public void run() {
-
-        System.out.println("WorkerID: " + dsObjectSpace.getWorkerID());
-
+        final long startTimeInit = System.currentTimeMillis();
 
         if(dsObjectSpace.getWorkerID() == 0) {
             float[][] matrix = generateMatrix();
@@ -35,8 +33,6 @@ public class GaussSeidelWorker implements DSObject{
                 matrixLength -= matrixLength%workerCount;
             }
 
-            System.out.print(printDistribution(distribution));
-
             int i = 0, start = 0, end = 0;
             for (int columns : distribution) {
                 end += columns;
@@ -52,24 +48,46 @@ public class GaussSeidelWorker implements DSObject{
             }
         }
         dsObjectSpace.synchronize();
+        final long endTimeInit = System.currentTimeMillis();
 
+        final long startTimeCalculate = System.currentTimeMillis();
         int workerID = dsObjectSpace.getWorkerID();
 
-        for (int tolerance = 0; tolerance < 1; tolerance++){ // while the tolerance criteria is not met
+        for (int tolerance = 0; tolerance < 10; tolerance++){ // while the tolerance criteria is not met
             Matrix id = (Matrix) dsObjectSpace.getObject(workerID, DSObjectSpace.Permission.ReadWrite);
+            Matrix left = null;
+            Matrix right = null;
             printMatrix(id.matrix);
             if (workerID < 1) { //leftmost
-                Matrix right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
-                id.calculate(null, right);
+                right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
             } else if (workerID == dsObjectSpace.getWorkerCount() - 1) { //rightmost
-                Matrix left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
-                id.calculate(left, null);
+                left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
             } else { //in the middle
-                Matrix left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
-                Matrix right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
-                id.calculate(left, right);
+                left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
+                right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
             }
+            id.calculateRed(left, right);
             dsObjectSpace.synchronize();
+            if (workerID < 1) { //leftmost
+                right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
+            } else if (workerID == dsObjectSpace.getWorkerCount() - 1) { //rightmost
+                left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
+            } else { //in the middle
+                left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
+                right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
+            }
+            id.calculateBlack(left, right);
+            dsObjectSpace.synchronize();
+        }
+        final long endTimeCalculate = System.currentTimeMillis();
+
+        if(dsObjectSpace.getWorkerID() == 0) {
+            for (int i = 0; i < dsObjectSpace.getWorkerCount(); i++) {
+                System.out.print(dsObjectSpace.getObject(i, DSObjectSpace.Permission.Read));
+            }
+            System.out.println("Performance");
+            System.out.println("Startup time: " + (endTimeInit - startTimeInit));
+            System.out.println("Calculation time: " + (endTimeCalculate - startTimeCalculate));
         }
     }
 
@@ -85,6 +103,9 @@ public class GaussSeidelWorker implements DSObject{
     }
 
     private float[][] generateMatrix() {
+
+        //float[][] tmp2 = {{1,2,3,4},{2,3,4,1},{3,4,1,2},{4,1,2,3}};
+
         Random rnd = new Random();
         float[][] tmp = new float[20][20];
         for (int i = 0; i < tmp.length; i++) {
