@@ -10,7 +10,7 @@ import static se.uu.it.jdooms.objectspace.DSObjectSpace.*;
 public class DSObjectBase implements Serializable, DSObjectBaseInterface {
     private static final long serialVersionUID = 42L;
 
-    private int ID = 2;
+    private int ID;
     private Classifier classifier;
 
     /**
