@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 import static se.uu.it.jdooms.objectspace.DSObjectSpace.*;
 
@@ -19,13 +20,20 @@ import static se.uu.it.jdooms.objectspace.DSObjectSpace.*;
  */
 public class DSObjectReceiver {
     private static final Logger logger = Logger.getLogger(DSObjectReceiver.class);
+    private DSObjectCommunication dsObjectCommunication;
+
     private DSObjectSpaceImpl dsObjectSpace;
+    private DSNodeBarrier dsNodeBarrier;
     private boolean receiving;
 
-    public DSObjectReceiver(DSObjectSpaceImpl dsObjectSpace) {
+    public DSObjectReceiver(DSObjectCommunication dsObjectCommunication, DSObjectSpaceImpl dsObjectSpace) {
         logger.info("Initiated");
         receiving = true;
+
+        this.dsObjectCommunication = dsObjectCommunication;
         this.dsObjectSpace = dsObjectSpace;
+
+        dsNodeBarrier = dsObjectCommunication.getDsNodeBarrier();
     }
 
     /**
@@ -68,13 +76,15 @@ public class DSObjectReceiver {
                             e.printStackTrace();
                         }
                     }
-
                     break;
                 case 30:
                     logger.debug("Got tag " + mps.getTag() + " from node " + mps.getSource() + " (loadDSObject)");
                     String clazz = (String) receiveBuffer[0];
                     loadDSClass(clazz);
                     break;
+                case 40:
+                    logger.debug("Got tag " + mps.getTag() + " from node " + mps.getSource() + " (synchronize)");
+                    dsNodeBarrier.add(mps.getSource());
                 default:
                     break;
             }

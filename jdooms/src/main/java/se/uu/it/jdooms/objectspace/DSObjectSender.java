@@ -11,11 +11,17 @@ import static se.uu.it.jdooms.objectspace.DSObjectSpace.*;
  */
 public class DSObjectSender {
     private static final Logger logger = Logger.getLogger(DSObjectSender.class);
-    private DSObjectSpaceImpl dsObjectSpace;
 
-    public DSObjectSender(DSObjectSpaceImpl dsObjectSpace) {
+    private DSObjectCommunication dsObjectCommunication;
+    private DSObjectSpaceImpl dsObjectSpace;
+    private DSNodeBarrier dsNodeBarrier;
+
+    public DSObjectSender(DSObjectCommunication dsObjectCommunication, DSObjectSpaceImpl dsObjectSpace) {
         logger.debug("Initiated");
+
+        this.dsObjectCommunication = dsObjectCommunication;
         this.dsObjectSpace = dsObjectSpace;
+        dsNodeBarrier = dsObjectCommunication.getDsNodeBarrier();
     }
 
     /**
@@ -52,6 +58,24 @@ public class DSObjectSender {
             if (node != dsObjectSpace.getNodeID()) {
                 try {
                     MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, node, 20);
+                } catch (MPIException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
+     * Send a MPI barrier call to all the other nodes
+     */
+    protected void synchronize() {
+        Object[] sendBuffer = new Object[1];
+        sendBuffer[0] = null;
+        /* @TODO: Make non-blocking */
+        for (int node = 0; node < dsObjectSpace.getClusterSize(); node++) {
+            if (node != dsObjectSpace.getNodeID()) {
+                try {
+                    MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, node, 40);
                 } catch (MPIException e) {
                     e.printStackTrace();
                 }

@@ -10,16 +10,21 @@ import se.uu.it.jdooms.objectspace.DSObjectSpace.Permission;
  */
 public class DSObjectCommunication implements Runnable {
     private static final Logger logger = Logger.getLogger(DSObjectCommunication.class);
+
     private DSObjectSpaceImpl dsObjectSpace;
     private DSObjectSpaceMap<Integer, Object> dsObjectSpaceMap;
+    private DSNodeBarrier dsNodeBarrier;
+
     private DSObjectReceiver receiver;
     private DSObjectSender sender;
 
     public DSObjectCommunication(DSObjectSpaceImpl dsObjectSpace, DSObjectSpaceMap dsObjectSpaceMap) {
         this.dsObjectSpace = dsObjectSpace;
         this.dsObjectSpaceMap = dsObjectSpaceMap;
-        receiver = new DSObjectReceiver(this.dsObjectSpace);
-        sender = new DSObjectSender(this.dsObjectSpace);
+        dsNodeBarrier = new DSNodeBarrier(dsObjectSpace.getNodeID(), dsObjectSpace.getClusterSize());
+
+        receiver = new DSObjectReceiver(this, dsObjectSpace);
+        sender = new DSObjectSender(this, dsObjectSpace);
     }
 
     /**
@@ -86,7 +91,14 @@ public class DSObjectCommunication implements Runnable {
      * Synchronize call
      */
     public void synchronize() {
-        logger.debug(dsObjectSpace.getNodeID() + " sent MPI Barrier");
-        sender.barrier();
+        //logger.debug(dsObjectSpace.getNodeID() + " sent MPI Barrier");
+        sender.synchronize();
+
+
+
+    }
+
+    public DSNodeBarrier getDsNodeBarrier() {
+        return dsNodeBarrier;
     }
 }
