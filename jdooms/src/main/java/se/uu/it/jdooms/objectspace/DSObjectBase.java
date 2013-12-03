@@ -1,13 +1,16 @@
 package se.uu.it.jdooms.objectspace;
 
 import java.io.Serializable;
+
 import static se.uu.it.jdooms.objectspace.DSObjectSpace.*;
 
 /**
  * Abstract base class to be implemented by all DSObject's
  */
-public abstract class DSObjectBase implements DSObjectBaseInterface {
-    private int ID;
+public class DSObjectBase implements Serializable, DSObjectBaseInterface {
+    private static final long serialVersionUID = 42L;
+
+    private int ID = 2;
     private Classifier classifier;
 
     /**
