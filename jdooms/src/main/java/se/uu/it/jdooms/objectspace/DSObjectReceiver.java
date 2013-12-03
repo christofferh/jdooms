@@ -61,7 +61,7 @@ public class DSObjectReceiver {
                     Object localObject = dsObjectSpace.getLocalObject(objectID, Permission.ReadWrite);
                     sendBuffer[0] = localObject;
                     if (localObject != null) {
-                        logger.debug("Sending " + localObject + " to node " + mps.getSource());
+                        logger.debug("Sending " + localObject + " ID: " +  objectID + " to node " + mps.getSource());
                         try {
                             MPI.COMM_WORLD.Send(sendBuffer, 0, 1, MPI.OBJECT, mps.getSource(), 10);
                         } catch (MPIException e) {
