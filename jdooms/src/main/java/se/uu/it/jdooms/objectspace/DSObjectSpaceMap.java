@@ -28,7 +28,7 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
     }
 
     public V put(K key, V value) {
-        logger.debug("Put Key: " + key + " Value: " + value);
+        logger.debug("Put Key: " + key);
         V result = (V) super.put(key, value);
         notifyObservers();
         observers.clear();
