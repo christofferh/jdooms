@@ -100,6 +100,8 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         Object obj = objectSpaceMap.get(objectID);
         if (obj == null) {
             obj = dsObjectCommunication.getObject(objectID, permission); // LÅS
+        } else if (!((DSObjectBase) obj).isValid()) {
+            obj = dsObjectCommunication.getObject(objectID, permission);
         }
         return obj;
     }
@@ -203,6 +205,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
 
                 ((DSObjectBase)obj).setClassifier(Classifier.Shared);
                 ((DSObjectBase)obj).setID(ID);
+                ((DSObjectBase)obj).setValid(true);
 
                 putLocalObject(obj, Classifier.Shared);
             } catch (InvocationTargetException e) {
