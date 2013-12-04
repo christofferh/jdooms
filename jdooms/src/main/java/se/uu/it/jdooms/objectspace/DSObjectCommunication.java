@@ -75,7 +75,9 @@ public class DSObjectCommunication implements Runnable {
                 }
             }
         }
-
+        dsObjectSpaceMap.removeObserver(this);
+        ((DSObjectBase)obj).setPermission(permission);
+        ((DSObjectBase)obj).setValid(true);
         return  obj;
     }
 
@@ -93,9 +95,7 @@ public class DSObjectCommunication implements Runnable {
     public void synchronize() {
         //logger.debug(dsObjectSpace.getNodeID() + " sent MPI Barrier");
         sender.synchronize();
-
-
-
+        dsObjectSpaceMap.selfInvalidate();
     }
 
     public DSNodeBarrier getDsNodeBarrier() {
