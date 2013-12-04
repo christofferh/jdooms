@@ -12,6 +12,8 @@ public class DSObjectBase implements Serializable, DSObjectBaseInterface {
 
     private int ID;
     private Classifier classifier;
+    private boolean valid;
+    private Permission permission;
 
     /**
      * Gets the global ID of the distributed object
@@ -43,5 +45,37 @@ public class DSObjectBase implements Serializable, DSObjectBaseInterface {
      */
     public void setClassifier(DSObjectSpace.Classifier classifier) {
         this.classifier = classifier;
+    }
+
+    /**
+     * isValid
+     * @return if the object is valid
+     */
+    public boolean isValid() {
+        return valid;
+    }
+
+    /**
+     * Set object valid/invalid
+     * @param valid
+     */
+    public void setValid(boolean valid) {
+        this.valid = valid;
+    }
+
+    /**
+     * get object read/write permission
+     * @return
+     */
+    public Permission getPermission() {
+        return permission;
+    }
+
+    /**
+     * set the object read/write permission
+     * @param permission
+     */
+    public void setPermission(Permission permission) {
+        this.permission = permission;
     }
 }
