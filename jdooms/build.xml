@@ -88,6 +88,10 @@
   
   <!-- Project Libraries -->
   
+  <path id="library.commons-lang3-3.1.classpath">
+    <pathelement location="${basedir}/lib/commons-lang3-3.1.jar"/>
+  </path>
+  
   <path id="library.config.classpath">
     <pathelement location="${basedir}/src/main/config"/>
   </path>
@@ -140,6 +144,7 @@
     <path refid="library.config.classpath"/>
     <path refid="library.javassist.classpath"/>
     <path refid="library.mpi.classpath"/>
+    <path refid="library.commons-lang3-3.1.classpath"/>
   </path>
   
   <path id="jdooms.runtime.production.module.classpath">
@@ -149,6 +154,7 @@
     <path refid="library.config.classpath"/>
     <path refid="library.javassist.classpath"/>
     <path refid="library.mpi.classpath"/>
+    <path refid="library.commons-lang3-3.1.classpath"/>
   </path>
   
   <path id="jdooms.module.classpath">
@@ -160,6 +166,7 @@
     <path refid="library.config.classpath"/>
     <path refid="library.javassist.classpath"/>
     <path refid="library.mpi.classpath"/>
+    <path refid="library.commons-lang3-3.1.classpath"/>
   </path>
   
   <path id="jdooms.runtime.module.classpath">
@@ -170,6 +177,7 @@
     <path refid="library.config.classpath"/>
     <path refid="library.javassist.classpath"/>
     <path refid="library.mpi.classpath"/>
+    <path refid="library.commons-lang3-3.1.classpath"/>
   </path>
   
   
@@ -238,6 +246,8 @@
       <zipfileset file="${basedir}/src/main/config/log4j.properties"/>
       <zipfileset src="${basedir}/lib/javassist.jar"/>
       <zipfileset src="${basedir}/lib/log4j-1.2.17.jar"/>
+      <zipfileset file="${basedir}/lib/commons-lang3-3.1.jar"/>
+      <zipfileset src="${basedir}/lib/commons-lang3-3.1.jar"/>
     </jar>
     <copy file="${temp.jar.path.jdooms.jar}" tofile="${artifact.temp.output.jdooms:jar}/jdooms.jar"/>
   </target>

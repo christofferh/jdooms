@@ -21,6 +21,7 @@
     <orderEntry type="library" name="config" level="project" />
     <orderEntry type="library" name="javassist" level="project" />
     <orderEntry type="library" name="mpi" level="project" />
+    <orderEntry type="library" name="commons-lang3-3.1" level="project" />
   </component>
 </module>
 
