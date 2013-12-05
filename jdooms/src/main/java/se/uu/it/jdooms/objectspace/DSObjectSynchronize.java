@@ -1,6 +1,5 @@
 package se.uu.it.jdooms.objectspace;
 
-
 import org.apache.log4j.Logger;
 
 public class DSObjectSynchronize implements Runnable {

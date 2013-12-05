@@ -40,7 +40,7 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
     }
 
     public void selfInvalidate() {
-        for (Object obj : observers) {
+        for (Object obj : super.keySet()) {
             if (((DSObjectBase)obj).getPermission() == DSObjectSpace.Permission.Read) {
                 ((DSObjectBase)obj).setValid(false);
             }
