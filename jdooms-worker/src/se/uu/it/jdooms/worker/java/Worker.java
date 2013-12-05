@@ -1,7 +1,7 @@
 package se.uu.it.jdooms.worker.java;
 import se.uu.it.jdooms.objectspace.DSObjectSpace;
+import se.uu.it.jdooms.objectspace.DSObjectSpace.Permission;
 import se.uu.it.jdooms.workerdispatcher.DSObject;
-import se.uu.it.jdooms.workerdispatcher.DSObjectFinalizer;
 
 /**
  * Test worker class
@@ -66,7 +66,7 @@ public class Worker implements DSObject {
         } else {
             try {
                 Thread.sleep(1000);
-                DistributedTest test = (DistributedTest)objectSpace.getObject(20, DSObjectSpace.Permission.Read);
+                DistributedTest test = (DistributedTest)objectSpace.getObject(20, Permission.Read);
                 test.Test();
 
             } catch (InterruptedException e) {
