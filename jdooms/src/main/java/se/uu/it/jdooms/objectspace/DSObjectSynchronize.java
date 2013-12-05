@@ -1,6 +1,5 @@
 package se.uu.it.jdooms.objectspace;
 
-
 import org.apache.log4j.Logger;
 
 import static se.uu.it.jdooms.objectspace.DSObjectCommunication.*;
