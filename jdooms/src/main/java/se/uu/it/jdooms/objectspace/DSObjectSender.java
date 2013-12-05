@@ -47,12 +47,12 @@ public class DSObjectSender {
 
     /**
      * Requests the object with a certain hashcode from the cluster.
-     * @param ID the ID of the object
+     * @param objectID the ID of the object
      * @param permission
      */
-    protected void getObject(int ID, Permission permission) {
+    protected void getObject(int objectID, Permission permission) {
         Object[] sendBuffer = new Object[1];
-        sendBuffer[0] = (Integer) ID;
+        sendBuffer[0] = (Integer) objectID;
         /* @TODO: Make non-blocking */
         for (int node = 0; node < dsObjectSpace.getClusterSize(); node++) {
             if (node != dsObjectSpace.getNodeID()) {
