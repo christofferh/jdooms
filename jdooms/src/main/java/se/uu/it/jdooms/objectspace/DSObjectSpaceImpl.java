@@ -10,7 +10,6 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CyclicBarrier;
 
-import static se.uu.it.jdooms.objectspace.DSObjectCommunication.*;
 import se.uu.it.jdooms.objectspace.DSObjectCommunication.*;
 
 /**
@@ -29,8 +28,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         dsObjectCommunication = new DSObjectCommunication(args, this, objectSpaceMap, queue);
         Thread dsObjectCommThread = new Thread(dsObjectCommunication);
         dsObjectCommThread.start();
-        barrier = new CyclicBarrier(getWorkerCount()/getClusterSize(), new DSObjectSynchronize(dsObjectCommunication));
-
+        barrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectSynchronize(dsObjectCommunication));
     }
 
     /**
@@ -71,10 +69,9 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     /**
      * Stores an object in the local object space
      * @param obj the object to store
-     * @param classifier the classifier
      */
     @Override
-    public void putObject(Object obj, Classifier classifier) {
+    public void putObject(Object obj) {
         if (obj != null) {
             objectSpaceMap.put(((DSObjectBase) obj).getID(), obj);
         }
@@ -82,37 +79,27 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
 
     /**
      * Tries to get an object from the local object space, if unsuccessful, request it from the cluster.
-     *
      * @param objectID the ID of the requested object
      */
     @Override
     public Object getObject(int objectID, Permission permission) {
         Object obj = objectSpaceMap.get(objectID);
-        if (obj == null) {
-            dsObjectCommunication.putQueue(GET_OBJECT, objectID);
-            // Wait till object is in local cache
+        if (obj == null || !((DSObjectBase) obj).isValid()) {
+            obj = dsObjectCommunication.getObject(objectID, permission);
         }
         return obj;
     }
 
     /**
-     * Put local object
-     * @param obj
-     * @param classifier
-     */
-    public void putLocalObject(Object obj, Classifier classifier) {
-        if (obj != null) {
-            objectSpaceMap.put(((DSObjectBase) obj).getID(), obj);
-        }
-    }
-    /**
-     * Get local object
-     * @param objectID
-     * @param permission
-     * @return
+     * Tries to get an object from the local object space. Needed for dsNew
+     * @param objectID the ID of the requested object
      */
     public Object getLocalObject(int objectID, Permission permission) {
-        return objectSpaceMap.get(objectID);
+        Object obj = objectSpaceMap.get(objectID);
+        if (obj == null || !((DSObjectBase) obj).isValid()) {
+            return null;
+        }
+        return obj;
     }
 
     /**
@@ -146,8 +133,8 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
             ClassLoader cl = this.getClass().getClassLoader();
             Class tmp_cl = (Class) findLoadedClass.invoke(cl, clazz);
             if (tmp_cl == null) {
-                logger.debug("Creating and sending DSclass");
-                dsObjectCommunication.putQueue(LOAD_DSOBJECT, clazz);
+                logger.debug("Creating and sending DSclass: " + clazz);
+                dsObjectCommunication.enqueueloadDSClass(clazz);
                 ClassPool classPool = ClassPool.getDefault();
                 try {
                     String path = System.getProperty("user.dir");
@@ -192,10 +179,12 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
                 Class tmp_clazz = (Class) findLoadedClass.invoke(cl, clazz);
                 obj = tmp_clazz.newInstance();
 
+                ((DSObjectBase)obj).setPermission(Permission.ReadWrite);
                 ((DSObjectBase)obj).setClassifier(Classifier.Shared);
                 ((DSObjectBase)obj).setID(ID);
+                ((DSObjectBase)obj).setValid(true);
 
-                putLocalObject(obj, Classifier.Shared);
+                putObject(obj);
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
             }

@@ -2,8 +2,6 @@ package se.uu.it.jdooms.objectspace;
 
 import org.apache.log4j.Logger;
 
-import static se.uu.it.jdooms.objectspace.DSObjectCommunication.*;
-
 public class DSObjectSynchronize implements Runnable {
     private static final Logger logger = Logger.getLogger(DSObjectSynchronize.class);
     private DSObjectCommunication dsObjectCommunication;
@@ -16,8 +14,7 @@ public class DSObjectSynchronize implements Runnable {
 
     @Override
     public void run() {
-        /* DO SYNC STUFF */
-        dsObjectCommunication.putQueue(SYNCHRONIZE, null);
+        dsObjectCommunication.synchronize();
         if (dsNodeBarrier.barrier(this)) {
             try {
                 synchronized (this) {
