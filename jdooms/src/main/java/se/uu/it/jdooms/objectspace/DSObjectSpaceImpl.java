@@ -109,9 +109,8 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     /**
      * Put local object
      * @param obj
-     * @param classifier
      */
-    public void putLocalObject(Object obj, Classifier classifier) {
+    public void putLocalObject(Object obj) {
         if (obj != null) {
             objectSpaceMap.put(((DSObjectBase) obj).getID(), obj);
         }
@@ -204,10 +203,11 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
                 obj = tmp_clazz.newInstance();
 
                 ((DSObjectBase)obj).setClassifier(Classifier.Shared);
+                ((DSObjectBase)obj).setPermission(Permission.ReadWrite);
                 ((DSObjectBase)obj).setID(ID);
                 ((DSObjectBase)obj).setValid(true);
 
-                putLocalObject(obj, Classifier.Shared);
+                putLocalObject(obj);
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
             }
