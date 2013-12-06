@@ -25,9 +25,11 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     public DSObjectSpaceImpl(String[] args) {
         objectSpaceMap = new DSObjectSpaceMap<Integer, Object>();
         queue = new ConcurrentLinkedQueue<DSObjectMessage>();
-        dsObjectCommunication = new DSObjectCommunication(args, this, objectSpaceMap, queue);
+
+        dsObjectCommunication = new DSObjectCommunication(args, objectSpaceMap, queue);
         Thread dsObjectCommThread = new Thread(dsObjectCommunication);
         dsObjectCommThread.start();
+
         barrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectSynchronize(dsObjectCommunication));
     }
 
@@ -118,14 +120,14 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     /**
      * Distributed new
      * @param clazz class to be instantiated
-     * @param ID uniquely identifiable number to the returning object
+     * @param objectID uniquely identifiable number to the returning object
      * @return new instance of the input clazz
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
     @Override
-    public Object dsNew(String clazz, int ID) throws IllegalAccessException, InstantiationException { //Should be synchronized
-        //make sure the ds class is loaded before trying to get it
+    public Object dsNew(String clazz, int objectID) throws IllegalAccessException, InstantiationException {
+        /* Make sure the ds class is loaded before trying to get it */
         Method findLoadedClass = null;
         try {
             findLoadedClass = ClassLoader.class.getDeclaredMethod("findLoadedClass", new Class[] { String.class });
@@ -157,8 +159,6 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
                 } catch (NotFoundException e) {
                     e.printStackTrace();
                 }
-            } else {
-
             }
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
@@ -166,10 +166,9 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
             e.printStackTrace();
         }
 
-        Object obj = null;
-        obj = getLocalObject(ID, Permission.ReadWrite); //What kind of permission should we use here.
+        Object obj = objectSpaceMap.get(objectID);
 
-        if(obj != null ) {
+        if (obj != null && ((DSObjectBase) obj).isValid() ) {
             logger.debug("Fetched object from local cache");
             return obj;
         } else {
@@ -181,7 +180,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
 
                 ((DSObjectBase)obj).setPermission(Permission.ReadWrite);
                 ((DSObjectBase)obj).setClassifier(Classifier.Shared);
-                ((DSObjectBase)obj).setID(ID);
+                ((DSObjectBase)obj).setID(objectID);
                 ((DSObjectBase)obj).setValid(true);
 
                 putObject(obj);
