@@ -9,23 +9,6 @@ public class Matrix {
         this.nrOfColumns = nrOfColumns;
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Matrix ID: " + columnID);
-        sb.append(System.getProperty("line.separator"));
-        for (float[] row : matrix) {
-            sb.append("[");
-            for (float value : row) {
-                sb.append(value);
-                sb.append( ", ");
-            }
-            sb.append("]");
-            sb.append(System.getProperty("line.separator"));
-        }
-        return sb.toString();
-    }
-
     public void calculateRed(Matrix left, Matrix right){
         calculate(left, right, 0);
     }
@@ -35,18 +18,11 @@ public class Matrix {
     }
 
     public void calculate(Matrix left, Matrix right, int color) {
-        if (left == null) { //leftmost
-            System.out.println("Leftmost ID: " + columnID);
-            calculateMiddle(color);
-            calculateRight(color, right);
-        } else if (right == null) { //rightmost
-            System.out.println("Rightmost ID: " + columnID);
+        if (left != null) { //rightmost
             calculateLeft(color, left);
-            calculateMiddle(color);
-        } else { //middle
-            System.out.println("Middle ID: " + columnID);
-            calculateLeft(color, left);
-            calculateMiddle(color);
+        }
+        calculateMiddle(color);
+        if (right != null) { //leftmost
             calculateRight(color, right);
         }
     }
@@ -77,5 +53,22 @@ public class Matrix {
                 }
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Matrix ID: " + columnID);
+        sb.append(System.getProperty("line.separator"));
+        for (float[] row : matrix) {
+            sb.append("[");
+            for (float value : row) {
+                sb.append(value);
+                sb.append( ", ");
+            }
+            sb.append("]");
+            sb.append(System.getProperty("line.separator"));
+        }
+        return sb.toString();
     }
 }
