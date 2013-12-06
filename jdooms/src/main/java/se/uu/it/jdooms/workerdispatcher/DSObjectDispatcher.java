@@ -8,9 +8,9 @@ import se.uu.it.jdooms.objectspace.DSObjectSpaceImpl;
  */
 public class DSObjectDispatcher {
     private static final Logger logger = Logger.getLogger(DSObjectDispatcher.class);
-    private DSObjectSpaceImpl dsObjectSpace;
-    private int workersPerNode;
-    private int beginWorkerID;
+    private final DSObjectSpaceImpl dsObjectSpace;
+    private final int workersPerNode;
+    private final int beginWorkerID;
 
     public DSObjectDispatcher(DSObjectSpaceImpl dsObjectSpace){
         this.dsObjectSpace = dsObjectSpace;
@@ -51,10 +51,11 @@ public class DSObjectDispatcher {
      * @throws ClassNotFoundException
      * @throws IllegalAccessException
      */
-    private <T> T instantiate(final String className, final Class<T> type) throws InstantiationException, ClassNotFoundException, IllegalAccessException {
+    @SuppressWarnings({"unchecked", "UnusedParameters"})
+    private <T> T instantiate(final String className, final Class<T> type)
+            throws InstantiationException, ClassNotFoundException, IllegalAccessException {
         ClassLoader loader = this.getClass().getClassLoader();
         Class worker = loader.loadClass(className);
-
         return (T)worker.newInstance();
     }
 }

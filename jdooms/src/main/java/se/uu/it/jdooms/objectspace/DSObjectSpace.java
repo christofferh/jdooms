@@ -5,10 +5,10 @@ package se.uu.it.jdooms.objectspace;
  */
 public interface DSObjectSpace {
     public enum Classifier {
-        Shared, Private;
+        Shared, Private
     }
     public enum Permission {
-        Read, ReadWrite;
+        Read, ReadWrite
     }
     int getNodeID();
 

@@ -1,4 +1,4 @@
-package se.uu.it.jdooms.objectspace.communication;
+package se.uu.it.jdooms.communication;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
@@ -19,10 +19,10 @@ import java.util.Queue;
 /**
  * Communication class for MPI communication
  */
-public class DSObjectCommunication implements Runnable {
-    private static final Logger logger      = Logger.getLogger(DSObjectCommunication.class);
+public class DSObjectComm implements Runnable {
+    private static final Logger logger      = Logger.getLogger(DSObjectComm.class);
     public static final int REQ_OBJECT_R    = 10;
-    public static final int REQ_OBJECT_RW = 15;
+    public static final int REQ_OBJECT_RW   = 15;
     public static final int RET_OBJECT_R    = 20;
     public static final int RET_OBJECT_RW   = 25;
     public static final int LOAD_DSCLASS    = 30;
@@ -34,10 +34,11 @@ public class DSObjectCommunication implements Runnable {
     private boolean receiving;
 
     private DSObjectSpaceMap<Integer, Object> dsObjectSpaceMap;
-    private Queue<DSObjectMessage> queue;
-    private DSNodeBarrier dsNodeBarrier;
+    private Queue<DSObjectCommMessage> queue;
+    private DSObjectCommSender DSObjectCommSender;
+    private DSObjectNodeBarrier DSObjectNodeBarrier;
 
-    public DSObjectCommunication(String[] args, DSObjectSpaceMap dsObjectSpaceMap, Queue<DSObjectMessage> queue) {
+    public DSObjectComm(String[] args, DSObjectSpaceMap<Integer, Object> dsObjectSpaceMap, Queue<DSObjectCommMessage> queue) {
         this.dsObjectSpaceMap = dsObjectSpaceMap;
         this.queue = queue;
 
@@ -50,7 +51,8 @@ public class DSObjectCommunication implements Runnable {
             e.printStackTrace();
         }
 
-        dsNodeBarrier = new DSNodeBarrier(nodeID, clusterSize);
+        DSObjectCommSender = new DSObjectCommSender(this);
+        DSObjectNodeBarrier = new DSObjectNodeBarrier(nodeID, clusterSize);
         receiving = true;
     }
 
@@ -82,8 +84,8 @@ public class DSObjectCommunication implements Runnable {
      * Return the node barrier
      * @return the node barrier
      */
-    public DSNodeBarrier getDsNodeBarrier() {
-        return dsNodeBarrier;
+    public DSObjectNodeBarrier getDSObjectNodeBarrier() {
+        return DSObjectNodeBarrier;
     }
     /**
      * Start the communication
@@ -91,13 +93,13 @@ public class DSObjectCommunication implements Runnable {
     @Override
     public void run() {
         Thread.currentThread().setName("COMM-" + nodeID);
-        DSObjectMessage message;
+        DSObjectCommMessage message;
         Status status;
         while (receiving) {
             message = queue.poll();
             if (message != null) {
                 try {
-                    send(message);
+                    DSObjectCommSender.send(message);
                 } catch (MPIException e) {
                     e.printStackTrace();
                 }
@@ -106,14 +108,14 @@ public class DSObjectCommunication implements Runnable {
                     status = MPI.COMM_WORLD.iProbe(MPI.ANY_SOURCE, MPI.ANY_TAG);
                     if (status != null) {
                         int tag = status.getTag();
-                        
+
                         if (tag == RET_OBJECT_R || tag == RET_OBJECT_RW) {
                             logger.debug("RET");
                             byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
-                            Object obj;
+                            DSObjectBaseImpl obj;
                             MPI.COMM_WORLD.recv(byte_buffer, byte_buffer.length, MPI.BYTE, MPI.ANY_SOURCE, tag);
-                            obj = SerializationUtils.deserialize(byte_buffer);
-                            dsObjectSpaceMap.put(((DSObjectBaseImpl)obj).getID(), obj);
+                            obj = (DSObjectBaseImpl) SerializationUtils.deserialize(byte_buffer);
+                            dsObjectSpaceMap.put(obj.getID(), obj);
                         } else if (tag == REQ_OBJECT_R || tag == REQ_OBJECT_RW) {
                             logger.debug("GET");
                             int[] int_buffer = new int[1];
@@ -121,7 +123,7 @@ public class DSObjectCommunication implements Runnable {
                             int objectId = int_buffer[0];
                             Object obj = dsObjectSpaceMap.get(objectId);
                             if (obj != null) {
-                                queue.offer(new DSObjectMessage(((tag == REQ_OBJECT_R) ? RET_OBJECT_R : RET_OBJECT_RW),
+                                queue.offer(new DSObjectCommMessage(((tag == REQ_OBJECT_R) ? RET_OBJECT_R : RET_OBJECT_RW),
                                                                 status.getSource(),
                                                                 obj));
                             }
@@ -135,7 +137,7 @@ public class DSObjectCommunication implements Runnable {
                             logger.debug("SYNC");
                             boolean[] bool_buffer = new boolean[1];
                             MPI.COMM_WORLD.recv(bool_buffer, 1,  MPI.BOOLEAN, MPI.ANY_SOURCE, tag);
-                            dsNodeBarrier.add(status.getSource());
+                            DSObjectNodeBarrier.add(status.getSource());
                         }
                     }
                 } catch (MPIException e) {
@@ -149,7 +151,7 @@ public class DSObjectCommunication implements Runnable {
      * Puts a synchronize message on the queue and self-invalidates its local cache
      */
     public void synchronize() {
-        queue.offer(new DSObjectMessage(SYNCHRONIZE));
+        queue.offer(new DSObjectCommMessage(SYNCHRONIZE));
         dsObjectSpaceMap.selfInvalidate();
     }
 
@@ -158,7 +160,7 @@ public class DSObjectCommunication implements Runnable {
      * @param clazz the class to load
      */
     public void enqueueloadDSClass(String clazz) {
-        queue.offer(new DSObjectMessage(LOAD_DSCLASS, clazz));
+        queue.offer(new DSObjectCommMessage(LOAD_DSCLASS, clazz));
     }
 
     /**
@@ -167,10 +169,11 @@ public class DSObjectCommunication implements Runnable {
      */
     public Object getObject(int objectID, Permission permission) {
         if (permission == Permission.Read) {
-            queue.offer(new DSObjectMessage(REQ_OBJECT_R, objectID));
+            queue.offer(new DSObjectCommMessage(REQ_OBJECT_R, objectID));
         } else {
-            queue.offer(new DSObjectMessage(REQ_OBJECT_RW, objectID));
+            queue.offer(new DSObjectCommMessage(REQ_OBJECT_RW, objectID));
         }
+
         Object obj = null;
         dsObjectSpaceMap.addObserver(this);
 
@@ -192,29 +195,6 @@ public class DSObjectCommunication implements Runnable {
         ((DSObjectBaseImpl)obj).setValid(true);
 
         return obj;
-    }
-
-    /**
-     * Sends an DSObjectMessage via MPI
-     * @param message the message to send
-     * @throws MPIException
-     */
-    private void send(DSObjectMessage message) throws MPIException {
-        if (message.tag == REQ_OBJECT_R || message.tag == REQ_OBJECT_RW) {
-            for (int node = 0; node < clusterSize; node++) {
-                if (node != nodeID) MPI.COMM_WORLD.send(message.objectID, 1, MPI.INT, node, message.tag);
-            }
-        } else if (message.tag == RET_OBJECT_R || message.tag == RET_OBJECT_RW) {
-            MPI.COMM_WORLD.send(message.obj, message.obj.length, MPI.BYTE, message.destination, message.tag);
-        } else if (message.tag == LOAD_DSCLASS) {
-            for (int node = 0; node < clusterSize; node++) {
-                if (node != nodeID) MPI.COMM_WORLD.send(message.clazz, message.clazz.length, MPI.CHAR, node, message.tag);
-            }
-        } else if (message.tag == SYNCHRONIZE) {
-            for (int node = 0; node < clusterSize; node++) {
-                if (node != nodeID) MPI.COMM_WORLD.send(message.synchronize, 1, MPI.BOOLEAN, node, message.tag);
-            }
-        }
     }
 
     /**
