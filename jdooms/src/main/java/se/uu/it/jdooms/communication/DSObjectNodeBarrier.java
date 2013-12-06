@@ -1,4 +1,4 @@
-package se.uu.it.jdooms.objectspace.communication;
+package se.uu.it.jdooms.communication;
 
 import org.apache.log4j.Logger;
 import java.util.ArrayList;
@@ -6,14 +6,14 @@ import java.util.ArrayList;
 /**
  * Barrier class for workers
  */
-public class DSNodeBarrier {
-    private static final Logger logger = Logger.getLogger(DSNodeBarrier.class);
-    private ArrayList<Integer> waitingNodes;
+public class DSObjectNodeBarrier {
+    private static final Logger logger = Logger.getLogger(DSObjectNodeBarrier.class);
+    private final ArrayList<Integer> waitingNodes;
     private Object localSynchronizer;
-    private int clusterSize;
-    private int nodeID;
+    private final int clusterSize;
+    private final int nodeID;
 
-    public DSNodeBarrier(int nodeID, int clusterSize) {
+    public DSObjectNodeBarrier(int nodeID, int clusterSize) {
         this.clusterSize = clusterSize;
         this.nodeID = nodeID;
         waitingNodes = new ArrayList<Integer>(clusterSize);
@@ -24,29 +24,25 @@ public class DSNodeBarrier {
      * is full, the barrier is released and the local worker threads are notified.
      * @param nodeID the nodeID of the reported node
      */
-    public void add(int nodeID) {
+    public synchronized void add(int nodeID) {
         waitingNodes.add(nodeID);
         if (waitingNodes.size() >= clusterSize) {
             waitingNodes.clear();
-            synchronized (localSynchronizer) {
-                localSynchronizer.notify();
-            }
+            localSynchronizer.notify();
         }
     }
 
     /**
-     * Initializes a barrier at the local node and registers the DSObjectSynchronize instance to be notified.
-     * @param obj reference to the DSObjectSynchronize instance
+     * Initializes a barrier at the local node and registers the DSObjectCommSynchronize instance to be notified.
+     * @param obj reference to the DSObjectCommSynchronize instance
      * @return false if the barrier was immediately released. Otherwise true
      */
-    public boolean barrier(Object obj) {
+    public synchronized boolean barrier(Object obj) {
         localSynchronizer = obj;
         waitingNodes.add(nodeID);
         if (waitingNodes.size() >= clusterSize) {
             waitingNodes.clear();
-            synchronized (localSynchronizer) {
-                localSynchronizer.notify();
-            }
+            localSynchronizer.notify();
             return false;
         }
         return true;

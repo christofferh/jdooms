@@ -8,8 +8,6 @@ import static se.uu.it.jdooms.objectspace.DSObjectSpace.*;
  * Abstract base class to be implemented by all DSObject's
  */
 public class DSObjectBaseImpl implements Serializable, DSObjectBase {
-    private static final long serialVersionUID = 42L;
-
     private int ID;
     private Classifier classifier;
     private boolean valid;
@@ -62,7 +60,7 @@ public class DSObjectBaseImpl implements Serializable, DSObjectBase {
 
     /**
      * Set object valid/invalid
-     * @param valid
+     * @param valid boolean if the object should be valid or not
      */
     @Override
     public void setValid(boolean valid) {
@@ -71,7 +69,7 @@ public class DSObjectBaseImpl implements Serializable, DSObjectBase {
 
     /**
      * get object read/write permission
-     * @return
+     * @return the permission of the object
      */
     @Override
     public Permission getPermission() {
@@ -80,7 +78,7 @@ public class DSObjectBaseImpl implements Serializable, DSObjectBase {
 
     /**
      * set the object read/write permission
-     * @param permission
+     * @param permission the permission of the object
      */
     @Override
     public void setPermission(Permission permission) {

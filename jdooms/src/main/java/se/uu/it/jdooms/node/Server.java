@@ -8,8 +8,8 @@ import se.uu.it.jdooms.workerdispatcher.DSObjectDispatcher;
  * JDOOMS Server
  */
 public class Server {
-    private DSObjectDispatcher dsObjectDispatcher;
-    private DSObjectSpaceImpl dsObjectSpace;
+    private final DSObjectDispatcher dsObjectDispatcher;
+    private final DSObjectSpaceImpl dsObjectSpace;
     private static String className;
     private static final Logger logger = Logger.getLogger(Server.class);
 
@@ -27,7 +27,7 @@ public class Server {
      * JDOOMS server constructor
      * @param args program arguments
      */
-    public Server(String[] args){
+    private Server(String[] args){
         dsObjectSpace = new DSObjectSpaceImpl(args);
         dsObjectDispatcher = new DSObjectDispatcher(dsObjectSpace);
     }
@@ -35,7 +35,7 @@ public class Server {
     /**
      * Start the Worker classes
      */
-    public void start(){
+    private void start(){
         if (dsObjectSpace.getNodeID() == 0)
         {
             dsObjectDispatcher.startWorkers(className);

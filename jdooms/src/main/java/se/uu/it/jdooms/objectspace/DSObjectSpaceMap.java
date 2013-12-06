@@ -24,9 +24,9 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
     private void notifyObservers() {
         logger.debug("Notify observers");
         for (Object obj : observers) {
-            synchronized (obj) {
-                obj.notify();
-            }
+                synchronized (obj) {
+                    obj.notify();
+                }
         }
     }
 
@@ -56,7 +56,7 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
      */
     public V put(K key, V value) {
         logger.debug("Put key: " + key + " objectspace");
-        V result = (V) super.put(key, value);
+        V result = super.put(key, value);
         notifyObservers();
         return result;
     }
