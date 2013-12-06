@@ -1,7 +1,6 @@
-package se.uu.it.jdooms.objectspace;
+package se.uu.it.jdooms.objectspace.communication;
 
 import org.apache.log4j.Logger;
-
 import java.util.ArrayList;
 
 /**

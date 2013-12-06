@@ -4,9 +4,8 @@ import org.apache.log4j.Logger;
 import se.uu.it.jdooms.objectspace.DSObjectSpaceImpl;
 import se.uu.it.jdooms.workerdispatcher.DSObjectDispatcher;
 
-
 /**
- * JDOOMS server class
+ * JDOOMS Server
  */
 public class Server {
     private DSObjectDispatcher dsObjectDispatcher;
@@ -19,7 +18,6 @@ public class Server {
 	 * @param args contains MPI parameters and Worker class
 	 */
 	public static void main(String[] args)   {
-        // Take string input of where to find the jar or class to load and execute
         className = args[0];
         Server server = new Server(args);
         server.start();
@@ -27,7 +25,7 @@ public class Server {
 
     /**
      * JDOOMS server constructor
-     * @param args
+     * @param args program arguments
      */
     public Server(String[] args){
         dsObjectSpace = new DSObjectSpaceImpl(args);
@@ -42,11 +40,6 @@ public class Server {
         {
             dsObjectDispatcher.startWorkers(className);
         } else {
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             dsObjectDispatcher.startWorkers(className);
         }
     }

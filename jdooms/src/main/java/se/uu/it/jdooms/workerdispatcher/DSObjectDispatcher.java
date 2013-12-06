@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 import se.uu.it.jdooms.objectspace.DSObjectSpaceImpl;
 
 /**
- * Distributed object dispatcher.
+ * Distributed object dispatcher
  */
 public class DSObjectDispatcher {
     private static final Logger logger = Logger.getLogger(DSObjectDispatcher.class);
@@ -23,7 +23,7 @@ public class DSObjectDispatcher {
      * @param className Fully qualified name of a class implementing DSObject
      */
     public void startWorkers(String className) {
-        DSObject worker = null;
+        DSObject worker;
         try {
             worker = instantiate(className, DSObject.class);
             worker.Init(dsObjectSpace);
@@ -31,11 +31,6 @@ public class DSObjectDispatcher {
             {
                 String workerID = Integer.toString(i);
                 new Thread(worker, workerID).start();
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
             }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();

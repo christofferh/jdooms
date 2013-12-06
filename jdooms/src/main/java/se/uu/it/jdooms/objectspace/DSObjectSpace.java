@@ -11,10 +11,16 @@ public interface DSObjectSpace {
         Read, ReadWrite;
     }
     int getNodeID();
+
     int getWorkerID();
+
     int getWorkerCount();
+
     void putObject(Object obj);
-    Object getObject(int ID, Permission permission);
+
     Object dsNew(String clazz, int ID) throws InstantiationException, IllegalAccessException;
+
+    Object getObject(int ID, Permission permission);
+
     void synchronize();
 }

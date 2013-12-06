@@ -10,7 +10,9 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CyclicBarrier;
 
-import se.uu.it.jdooms.objectspace.DSObjectCommunication.*;
+import se.uu.it.jdooms.objectspace.communication.DSObjectCommunication;
+import se.uu.it.jdooms.objectspace.communication.DSObjectMessage;
+import se.uu.it.jdooms.objectspace.communication.DSObjectSynchronize;
 
 /**
  * Implementation of the Distributed Object Space
@@ -75,7 +77,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     @Override
     public void putObject(Object obj) {
         if (obj != null) {
-            objectSpaceMap.put(((DSObjectBase) obj).getID(), obj);
+            objectSpaceMap.put(((DSObjectBaseImpl) obj).getID(), obj);
         }
     }
 
@@ -86,7 +88,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     @Override
     public Object getObject(int objectID, Permission permission) {
         Object obj = objectSpaceMap.get(objectID);
-        if (obj == null || !((DSObjectBase) obj).isValid()) {
+        if (obj == null || !((DSObjectBaseImpl) obj).isValid()) {
             obj = dsObjectCommunication.getObject(objectID, permission);
         }
         return obj;
@@ -98,7 +100,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      */
     public Object getLocalObject(int objectID, Permission permission) {
         Object obj = objectSpaceMap.get(objectID);
-        if (obj == null || !((DSObjectBase) obj).isValid()) {
+        if (obj == null || !((DSObjectBaseImpl) obj).isValid()) {
             return null;
         }
         return obj;
@@ -147,7 +149,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
                 }
                 try {
                     CtClass ctClass = classPool.get(clazz);
-                    CtClass superCtClass = classPool.get("se.uu.it.jdooms.objectspace.DSObjectBase");
+                    CtClass superCtClass = classPool.get("se.uu.it.jdooms.objectspace.DSObjectBaseImpl");
                     CtClass ctSerializable = classPool.get("java.io.Serializable");
 
                     if (ctClass.isFrozen()) { ctClass.defrost(); }
@@ -168,7 +170,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
 
         Object obj = objectSpaceMap.get(objectID);
 
-        if (obj != null && ((DSObjectBase) obj).isValid() ) {
+        if (obj != null && ((DSObjectBaseImpl) obj).isValid() ) {
             logger.debug("Fetched object from local cache");
             return obj;
         } else {
@@ -178,10 +180,10 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
                 Class tmp_clazz = (Class) findLoadedClass.invoke(cl, clazz);
                 obj = tmp_clazz.newInstance();
 
-                ((DSObjectBase)obj).setPermission(Permission.ReadWrite);
-                ((DSObjectBase)obj).setClassifier(Classifier.Shared);
-                ((DSObjectBase)obj).setID(objectID);
-                ((DSObjectBase)obj).setValid(true);
+                ((DSObjectBaseImpl)obj).setPermission(Permission.ReadWrite);
+                ((DSObjectBaseImpl)obj).setClassifier(Classifier.Shared);
+                ((DSObjectBaseImpl)obj).setID(objectID);
+                ((DSObjectBaseImpl)obj).setValid(true);
 
                 putObject(obj);
             } catch (InvocationTargetException e) {

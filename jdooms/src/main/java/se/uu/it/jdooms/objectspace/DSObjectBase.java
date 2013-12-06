@@ -1,81 +1,22 @@
 package se.uu.it.jdooms.objectspace;
 
-import java.io.Serializable;
-
-import static se.uu.it.jdooms.objectspace.DSObjectSpace.*;
-
 /**
- * Abstract base class to be implemented by all DSObject's
+ * Interface to the abstract base for all distributed objects
  */
-public class DSObjectBase implements Serializable, DSObjectBaseInterface {
-    private static final long serialVersionUID = 42L;
+public interface DSObjectBase {
+    public int getID();
 
-    private int ID;
-    private Classifier classifier;
-    private boolean valid;
-    private Permission permission;
+    public void setID(int ID);
 
-    /**
-     * Gets the global ID of the distributed object
-     * @return Global ID
-     */
-    public int getID() {
-        return ID;
-    }
+    public DSObjectSpace.Classifier getClassifier();
 
-    /**
-     * Sets the global ID of the distributed object
-     * @param ID Global ID
-     */
-    public void setID(int ID) {
-        this.ID = ID;
-    }
+    public void setClassifier(DSObjectSpace.Classifier classifier);
 
-    /**
-     * Gets the classifier of the distributed object
-     * @return classifier
-     */
-    public Classifier getClassifier() {
-        return classifier;
-    }
+    DSObjectSpace.Permission getPermission();
 
-    /**
-     * Sets the classifier of the distributed object
-     * @param classifier classifier
-     */
-    public void setClassifier(DSObjectSpace.Classifier classifier) {
-        this.classifier = classifier;
-    }
+    void setPermission(DSObjectSpace.Permission permission);
 
-    /**
-     * isValid
-     * @return if the object is valid
-     */
-    public boolean isValid() {
-        return valid;
-    }
+    boolean isValid();
 
-    /**
-     * Set object valid/invalid
-     * @param valid
-     */
-    public void setValid(boolean valid) {
-        this.valid = valid;
-    }
-
-    /**
-     * get object read/write permission
-     * @return
-     */
-    public Permission getPermission() {
-        return permission;
-    }
-
-    /**
-     * set the object read/write permission
-     * @param permission
-     */
-    public void setPermission(Permission permission) {
-        this.permission = permission;
-    }
+    void setValid(boolean valid);
 }
