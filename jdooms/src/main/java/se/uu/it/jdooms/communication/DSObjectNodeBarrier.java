@@ -24,11 +24,14 @@ public class DSObjectNodeBarrier {
      * is full, the barrier is released and the local worker threads are notified.
      * @param nodeID the nodeID of the reported node
      */
-    public synchronized void add(int nodeID) {
+    public void add(int nodeID) {
         waitingNodes.add(nodeID);
         if (waitingNodes.size() >= clusterSize) {
             waitingNodes.clear();
-            localSynchronizer.notify();
+            synchronized (localSynchronizer) {
+                localSynchronizer.notify();
+            }
+
         }
     }
 
@@ -42,7 +45,9 @@ public class DSObjectNodeBarrier {
         waitingNodes.add(nodeID);
         if (waitingNodes.size() >= clusterSize) {
             waitingNodes.clear();
-            localSynchronizer.notify();
+            synchronized (localSynchronizer) {
+                localSynchronizer.notify();
+            }
             return false;
         }
         return true;
