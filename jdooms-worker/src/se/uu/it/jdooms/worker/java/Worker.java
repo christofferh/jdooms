@@ -50,7 +50,9 @@ public class Worker implements DSObject {
                 System.out.println("Illegal access exception");
                 e.printStackTrace();
             }
-            objectSpace.synchronize();/*
+            objectSpace.synchronize();
+            objectSpace.finalize();
+            /*
             if (objectSpace.getWorkerID() == 0) {
                 System.out.println("Worker " + objectSpace.getWorkerID() + " reached barrier");
                 objectSpace.synchronize();

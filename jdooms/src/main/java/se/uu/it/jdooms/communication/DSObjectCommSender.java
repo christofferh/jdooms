@@ -50,6 +50,13 @@ public class DSObjectCommSender {
                     request = MPI.COMM_WORLD.iSend(ByteBuffer.allocateDirect(0), 0, MPI.BYTE, node, message.tag);
                 }
             }
+        } else if (message.tag == FINALIZE) {
+            logger.debug("Sent FINALIZE");
+            for (int node = 0; node < clusterSize; node++) {
+                if (node != nodeID) {
+                    request = MPI.COMM_WORLD.iSend(ByteBuffer.allocateDirect(0), 0, MPI.BYTE, node, message.tag);
+                }
+            }
         }
         return request;
     }

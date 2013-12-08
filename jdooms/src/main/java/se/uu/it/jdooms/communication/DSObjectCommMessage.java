@@ -59,8 +59,8 @@ public class DSObjectCommMessage {
     }
 
     /**
-     * Message for SYNCHRONIZE
-     * @param tag SYNCHRONIZE
+     * Message for SYNCHRONIZE/FINALIZE
+     * @param tag SYNCHRONIZE/FINALIZE
      */
     public DSObjectCommMessage(int tag) {
         this.tag = tag;

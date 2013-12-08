@@ -31,6 +31,7 @@ public class DSObjectComm implements Runnable {
     public static final int RES_OBJECT_RW   = 25;
     public static final int LOAD_DSCLASS    = 30;
     public static final int SYNCHRONIZE     = 40;
+    public static final int FINALIZE        = 50;
 
     private int nodeID;
     private int clusterSize;
@@ -142,7 +143,13 @@ public class DSObjectComm implements Runnable {
                         byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
                         MPI.COMM_WORLD.recv(byte_buffer, 1,  MPI.BYTE, MPI.ANY_SOURCE, tag);
                         DSObjectNodeBarrier.add(status.getSource());
-                    }
+                    } else if (tag == FINALIZE) {
+                        logger.debug("Got FINALIZE");
+                        byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
+                        MPI.COMM_WORLD.recv(byte_buffer, 1,  MPI.BYTE, MPI.ANY_SOURCE, tag);
+                        receiving = false;
+                        //DSObjectNodeBarrier.add(status.getSource());
+                }
                 }
             } catch (MPIException e) {
                 e.printStackTrace();
@@ -154,6 +161,11 @@ public class DSObjectComm implements Runnable {
                 e.printStackTrace();
             }
         }
+        try {
+            MPI.Finalize();
+        } catch (MPIException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -164,6 +176,12 @@ public class DSObjectComm implements Runnable {
         dsObjectSpaceMap.selfInvalidate();
     }
 
+    /**
+     * Puts a finalize message on the queue
+     */
+    public void finalize() {
+        queue.offer(new DSObjectCommMessage(FINALIZE));
+    }
     /**
      * Puts a loadDSClass message on the queue
      * @param clazz the class to load

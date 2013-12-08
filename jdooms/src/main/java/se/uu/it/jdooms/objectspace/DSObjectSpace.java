@@ -23,4 +23,6 @@ public interface DSObjectSpace {
     Object getObject(int ID, Permission permission);
 
     void synchronize();
+
+    void finalize();
 }

@@ -108,6 +108,13 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     }
 
     /**
+     * Finalize call
+     */
+    public void finalize() {
+        DSObjectComm.finalize();
+    }
+
+    /**
      * Distributed new
      * @param clazz class to be instantiated
      * @param objectID uniquely identifiable number to the returning object
