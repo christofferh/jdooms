@@ -7,6 +7,7 @@ import mpi.Request;
 import org.apache.log4j.Logger;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import static se.uu.it.jdooms.communication.DSObjectComm.*;
 
@@ -14,6 +15,7 @@ public class DSObjectCommSender {
     private static final Logger logger = Logger.getLogger(DSObjectCommSender.class);
     private final int nodeID;
     private final int clusterSize;
+    private int syncCounter = 0;
 
     public DSObjectCommSender(DSObjectComm DSObjectComm) {
         nodeID = DSObjectComm.getNodeID();
@@ -43,8 +45,16 @@ public class DSObjectCommSender {
                     request = MPI.COMM_WORLD.iSend(message.clazz, message.clazz.capacity(), MPI.BYTE, node, message.tag);
                 }
             }
+        } else if (message.tag == RESERVE_OBJECT) {
+            logger.debug("Sent RESERVE_OBJECT");
+            for (int node = 0; node < clusterSize; node++) {
+                if (node != nodeID) {
+                    request = MPI.COMM_WORLD.iSend(message.objectID, message.objectID.capacity(), MPI.BYTE, node, message.tag);
+                }
+            }
         } else if (message.tag == SYNCHRONIZE) {
-            logger.debug("Sent SYNC");
+            logger.debug("Sent SYNC " + syncCounter);
+            syncCounter++;
             for (int node = 0; node < clusterSize; node++) {
                 if (node != nodeID) {
                     request = MPI.COMM_WORLD.iSend(ByteBuffer.allocateDirect(0), 0, MPI.BYTE, node, message.tag);

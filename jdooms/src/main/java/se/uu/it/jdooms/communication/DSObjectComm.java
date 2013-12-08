@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import se.uu.it.jdooms.objectspace.DSObjectBaseImpl;
 import se.uu.it.jdooms.objectspace.DSObjectSpace.Permission;
 import se.uu.it.jdooms.objectspace.DSObjectSpaceMap;
+import se.uu.it.jdooms.objectspace.DSReserved;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -32,11 +33,14 @@ public class DSObjectComm implements Runnable {
     public static final int LOAD_DSCLASS    = 30;
     public static final int SYNCHRONIZE     = 40;
     public static final int FINALIZE        = 50;
+    public static final int RESERVE_OBJECT  = 60;
+
 
     private int nodeID;
     private int clusterSize;
     private int workerCount;
     private boolean receiving;
+    private int syncCounter = 0;
 
     private DSObjectSpaceMap<Integer, Object> dsObjectSpaceMap;
     private Queue<DSObjectCommMessage> queue;
@@ -122,16 +126,24 @@ public class DSObjectComm implements Runnable {
                         obj = (DSObjectBaseImpl) SerializationUtils.deserialize(byte_buffer);
                         dsObjectSpaceMap.put(obj.getID(), obj);
                     } else if (tag == REQ_OBJECT_R || tag == REQ_OBJECT_RW) {
-                        logger.debug("Got Request");
                         byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
                         MPI.COMM_WORLD.recv(byte_buffer, byte_buffer.length, MPI.BYTE, MPI.ANY_SOURCE, tag);
                         int objectID = ByteBuffer.wrap(byte_buffer).getInt();
-                        Object obj = dsObjectSpaceMap.get(objectID);
+                        logger.debug("Got Request, objectid " + objectID);
+                        Object obj = dsObjectSpaceMap.get(objectID, tag);
                         if (obj != null) {
                             queue.offer(new DSObjectCommMessage(((tag == REQ_OBJECT_R) ? RES_OBJECT_R : RES_OBJECT_RW),
                                                             status.getSource(),
                                                             obj));
                         }
+                    } else if (tag == RESERVE_OBJECT) {
+                        byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
+                        MPI.COMM_WORLD.recv(byte_buffer, byte_buffer.length, MPI.BYTE, MPI.ANY_SOURCE, tag);
+                        int objectID = ByteBuffer.wrap(byte_buffer).getInt();
+                        logger.debug("Got RESERVE_OBJECT " + objectID);
+                        DSReserved dsReserved = new DSReserved();
+                        dsReserved.setReserved(true);
+                        dsObjectSpaceMap.put(objectID, dsReserved);
                     } else if (tag == LOAD_DSCLASS) {
                         logger.debug("Got LOAD_DSCLASS");
                         byte[] byteBuffer = new byte[status.getCount(MPI.BYTE)];
@@ -139,7 +151,8 @@ public class DSObjectComm implements Runnable {
                         String clazz = new String(byteBuffer);
                         loadDSClass(clazz);
                     } else if (tag == SYNCHRONIZE) {
-                        logger.debug("Got SYNC");
+                        logger.debug("Got SYNC " + syncCounter);
+                        syncCounter++;
                         byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
                         MPI.COMM_WORLD.recv(byte_buffer, 1,  MPI.BYTE, MPI.ANY_SOURCE, tag);
                         DSObjectNodeBarrier.add(status.getSource());
@@ -148,8 +161,7 @@ public class DSObjectComm implements Runnable {
                         byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
                         MPI.COMM_WORLD.recv(byte_buffer, 1,  MPI.BYTE, MPI.ANY_SOURCE, tag);
                         receiving = false;
-                        //DSObjectNodeBarrier.add(status.getSource());
-                }
+                    }
                 }
             } catch (MPIException e) {
                 e.printStackTrace();
@@ -177,10 +189,18 @@ public class DSObjectComm implements Runnable {
     }
 
     /**
-     * Puts a finalize message on the queue
+     * Puts a dsFinalize message on the queue
      */
-    public void finalize() {
+    public void dsFinalize() {
         queue.offer(new DSObjectCommMessage(FINALIZE));
+    }
+
+    /**
+     * Puts a reserveObject on the queue
+     * @param objectID
+     */
+    public void reserveObject(int objectID) {
+        queue.offer(new DSObjectCommMessage(RESERVE_OBJECT, objectID));
     }
     /**
      * Puts a loadDSClass message on the queue
@@ -201,19 +221,16 @@ public class DSObjectComm implements Runnable {
             queue.offer(new DSObjectCommMessage(REQ_OBJECT_RW, objectID));
         }
 
-        Object obj = null;
+        Object obj;
         dsObjectSpaceMap.addObserver(this);
 
-        while (obj == null) {
-            obj = dsObjectSpaceMap.get(objectID);
-            if (obj == null) {
-                try {
-                    synchronized (this) {
-                        this.wait();
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+        while (((DSObjectBaseImpl)(obj = dsObjectSpaceMap.get(objectID))).isReserved()) {
+            try {
+                synchronized (this) {
+                    this.wait();
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
 

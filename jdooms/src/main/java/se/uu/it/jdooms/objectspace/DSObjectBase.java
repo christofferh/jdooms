@@ -19,4 +19,8 @@ public interface DSObjectBase {
     boolean isValid();
 
     void setValid(boolean valid);
+
+    boolean isReserved();
+
+    void setReserved(boolean reserved);
 }

@@ -24,5 +24,5 @@ public interface DSObjectSpace {
 
     void synchronize();
 
-    void finalize();
+    void dsFinalize();
 }

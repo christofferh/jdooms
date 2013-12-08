@@ -20,8 +20,8 @@ public class DSObjectCommMessage {
     public ByteBuffer obj;
 
     /**
-     * Message for REQ_OBJECT_R/W (Get object)
-     * @param tag REQ_OBJECT_R/REQ_OBJECT_RW
+     * Message for REQ_OBJECT_R/W (Get object) / RESERVE_OBJECT
+     * @param tag REQ_OBJECT_R/REQ_OBJECT_RW/RESERVE_OBJECT
      * @param objectID the object ID
      */
     public DSObjectCommMessage(int tag, int objectID) {

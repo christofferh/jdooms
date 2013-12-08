@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import static se.uu.it.jdooms.communication.DSObjectComm.*;
 
 /**
  * Object store, extends ConcurrentHashMap to observe changes to objects
@@ -22,11 +23,13 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
      * Notifies the registered observers
      */
     private void notifyObservers() {
-        logger.debug("Notify observers");
+        if (observers.size() > 0) {
+            logger.debug("Notify observers");
+        }
         for (Object obj : observers) {
-                synchronized (obj) {
-                    obj.notify();
-                }
+            synchronized (obj) {
+                obj.notify();
+            }
         }
     }
 
@@ -65,10 +68,32 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
      * Invalidates all objects with Permission.Read in the object store
      */
     public void selfInvalidate() {
-        for (Object obj : super.values()) {
-            if (((DSObjectBaseImpl)obj).getPermission() == DSObjectSpace.Permission.Read) {
+        logger.debug("self invalidating");
+        for (Entry<K, V> entry : super.entrySet()) {
+            if (((DSObjectBaseImpl)entry.getValue()).getPermission() == DSObjectSpace.Permission.Read) {
+                V obj = entry.getValue();
                 ((DSObjectBaseImpl)obj).setValid(false);
+                super.put(entry.getKey(), obj);
             }
         }
+
+        for (V value : super.values()) {
+            logger.debug("object " + ((DSObjectBaseImpl)value).getID() + " is valid: " + ((DSObjectBaseImpl)value).isValid());
+        }
+    }
+
+    /**
+     *
+     * @param key
+     * @param tag
+     * @return
+     */
+    public V get(K key, int tag) {
+        V obj = super.get(key);
+        if (obj != null && tag == REQ_OBJECT_RW) {
+            ((DSObjectBase)obj).setPermission(DSObjectSpace.Permission.Read);
+            super.put(key, obj);
+        }
+        return obj;
     }
 }

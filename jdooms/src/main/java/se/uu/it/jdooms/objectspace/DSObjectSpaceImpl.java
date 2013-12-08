@@ -88,15 +88,19 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     @Override
     public Object getObject(int objectID, Permission permission) {
         Object obj = objectSpaceMap.get(objectID);
-        if (obj == null || !((DSObjectBaseImpl) obj).isValid()) {
+        if (obj != null && !((DSObjectBaseImpl) obj).isValid()) {
             obj = DSObjectComm.getObject(objectID, permission);
         }
         return obj;
     }
 
+    public void reserveObject(int objectID) {
+        DSObjectComm.reserveObject(objectID);
+    }
     /**
      * Barrier call
      */
+    @Override
     public void synchronize() {
         try {
             barrier.await();
@@ -110,8 +114,9 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     /**
      * Finalize call
      */
-    public void finalize() {
-        DSObjectComm.finalize();
+    @Override
+    public void dsFinalize() {
+        DSObjectComm.dsFinalize();
     }
 
     /**
@@ -169,6 +174,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
             logger.debug("Fetched object from local cache");
             return obj;
         } else {
+            DSObjectComm.reserveObject(objectID);
             try {
                 assert findLoadedClass != null;
                 logger.debug("Creating object and putting in local cache");

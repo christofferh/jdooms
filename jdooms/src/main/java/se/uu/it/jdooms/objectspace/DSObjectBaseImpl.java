@@ -12,6 +12,7 @@ public class DSObjectBaseImpl implements Serializable, DSObjectBase {
     private Classifier classifier;
     private boolean valid;
     private Permission permission;
+    private boolean reserved;
 
     /**
      * Gets the global ID of the distributed object
@@ -83,5 +84,15 @@ public class DSObjectBaseImpl implements Serializable, DSObjectBase {
     @Override
     public void setPermission(Permission permission) {
         this.permission = permission;
+    }
+
+    @Override
+    public boolean isReserved() {
+        return reserved;
+    }
+
+    @Override
+    public void setReserved(boolean reserved) {
+        this.reserved = reserved;
     }
 }

@@ -1,7 +1,7 @@
 package se.uu.it.jdooms.workerdispatcher;
 
 /**
- * Interface for distributed objects to finalize themselves.
+ * Interface for distributed objects to dsFinalize themselves.
  */
 public interface DSObjectFinalizer {
     /**
