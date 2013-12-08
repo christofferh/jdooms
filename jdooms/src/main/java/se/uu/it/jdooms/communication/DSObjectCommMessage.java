@@ -1,19 +1,23 @@
 package se.uu.it.jdooms.communication;
 
 import org.apache.commons.lang3.SerializationUtils;
+import org.apache.log4j.Logger;
 
 import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.IntBuffer;
 
 /**
  * Message structure for a DSOObject Message
  */
 public class DSObjectCommMessage {
+    private static final Logger logger = Logger.getLogger(DSObjectCommMessage.class);
     public int tag;
     public int destination;
-    public int[] objectID;
-    public char[] clazz;
-    public byte[] obj;
-    public boolean[] synchronize;
+    public ByteBuffer objectID;
+    public ByteBuffer clazz;
+    public ByteBuffer obj;
 
     /**
      * Message for REQ_OBJECT_R/W (Get object)
@@ -22,8 +26,7 @@ public class DSObjectCommMessage {
      */
     public DSObjectCommMessage(int tag, int objectID) {
         this.tag = tag;
-        this.objectID = new int[1];
-        this.objectID[0] = objectID;
+        this.objectID = ByteBuffer.allocateDirect(4).putInt(objectID);
     }
 
     /**
@@ -35,7 +38,9 @@ public class DSObjectCommMessage {
     public DSObjectCommMessage(int tag, int destination, Object obj) {
         this.tag = tag;
         this.destination = destination;
-        this.obj = SerializationUtils.serialize((Serializable) obj);
+        byte[] serialized = SerializationUtils.serialize((Serializable) obj);
+        this.obj = ByteBuffer.allocateDirect(serialized.length);
+        this.obj.put(serialized);
     }
 
     /**
@@ -45,8 +50,12 @@ public class DSObjectCommMessage {
      */
     public DSObjectCommMessage(int tag, String clazz) {
         this.tag = tag;
-        this.clazz = new char[clazz.length()];
-        this.clazz = clazz.toCharArray();
+
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(clazz.toCharArray().length);
+
+        byteBuffer.put(clazz.getBytes());
+
+        this.clazz = byteBuffer;//= ByteBuffer.allocateDirect(clazz.length()).asCharBuffer().put(clazz);
     }
 
     /**
@@ -55,7 +64,5 @@ public class DSObjectCommMessage {
      */
     public DSObjectCommMessage(int tag) {
         this.tag = tag;
-        this.synchronize = new boolean[1];
-        this.synchronize[0] = true;
     }
 }

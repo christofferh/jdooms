@@ -49,7 +49,8 @@ public class Worker implements DSObject {
             } catch (IllegalAccessException e) {
                 System.out.println("Illegal access exception");
                 e.printStackTrace();
-            }/*
+            }
+            objectSpace.synchronize();/*
             if (objectSpace.getWorkerID() == 0) {
                 System.out.println("Worker " + objectSpace.getWorkerID() + " reached barrier");
                 objectSpace.synchronize();
@@ -84,7 +85,7 @@ public class Worker implements DSObject {
                     e.printStackTrace();
                 }
             }*/
-
+            objectSpace.synchronize();
         }
 
         //System.out.println(objectSpace.getNodeID() + " passed all barriers");

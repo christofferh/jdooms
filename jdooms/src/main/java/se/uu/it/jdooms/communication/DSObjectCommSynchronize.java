@@ -28,5 +28,6 @@ public class DSObjectCommSynchronize implements Runnable {
                 e.printStackTrace();
             }
         }
+        logger.debug("Worker passed barrier");
     }
 }
