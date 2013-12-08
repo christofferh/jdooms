@@ -12,8 +12,12 @@ import se.uu.it.jdooms.objectspace.DSObjectBaseImpl;
 import se.uu.it.jdooms.objectspace.DSObjectSpace.Permission;
 import se.uu.it.jdooms.objectspace.DSObjectSpaceMap;
 
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.util.Arrays;
 import java.util.Queue;
 
 /**
@@ -23,8 +27,8 @@ public class DSObjectComm implements Runnable {
     private static final Logger logger      = Logger.getLogger(DSObjectComm.class);
     public static final int REQ_OBJECT_R    = 10;
     public static final int REQ_OBJECT_RW   = 15;
-    public static final int RET_OBJECT_R    = 20;
-    public static final int RET_OBJECT_RW   = 25;
+    public static final int RES_OBJECT_R    = 20;
+    public static final int RES_OBJECT_RW   = 25;
     public static final int LOAD_DSCLASS    = 30;
     public static final int SYNCHRONIZE     = 40;
 
@@ -95,54 +99,59 @@ public class DSObjectComm implements Runnable {
         Thread.currentThread().setName("COMM-" + nodeID);
         DSObjectCommMessage message;
         Status status;
+        Request request = null;
         while (receiving) {
             message = queue.poll();
             if (message != null) {
                 try {
-                    DSObjectCommSender.send(message);
+                    request = DSObjectCommSender.send(message);
                 } catch (MPIException e) {
                     e.printStackTrace();
                 }
-            } else {
-                try {
-                    status = MPI.COMM_WORLD.iProbe(MPI.ANY_SOURCE, MPI.ANY_TAG);
-                    if (status != null) {
-                        int tag = status.getTag();
-
-                        if (tag == RET_OBJECT_R || tag == RET_OBJECT_RW) {
-                            logger.debug("RET");
-                            byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
-                            DSObjectBaseImpl obj;
-                            MPI.COMM_WORLD.recv(byte_buffer, byte_buffer.length, MPI.BYTE, MPI.ANY_SOURCE, tag);
-                            obj = (DSObjectBaseImpl) SerializationUtils.deserialize(byte_buffer);
-                            dsObjectSpaceMap.put(obj.getID(), obj);
-                        } else if (tag == REQ_OBJECT_R || tag == REQ_OBJECT_RW) {
-                            logger.debug("GET");
-                            int[] int_buffer = new int[1];
-                            MPI.COMM_WORLD.recv(int_buffer, 1, MPI.INT, MPI.ANY_SOURCE, tag);
-                            int objectId = int_buffer[0];
-                            Object obj = dsObjectSpaceMap.get(objectId);
-                            if (obj != null) {
-                                queue.offer(new DSObjectCommMessage(((tag == REQ_OBJECT_R) ? RET_OBJECT_R : RET_OBJECT_RW),
-                                                                status.getSource(),
-                                                                obj));
-                            }
-                        } else if (tag == LOAD_DSCLASS) {
-                            char[] byte_buffer = new char[status.getCount(MPI.CHAR)];
-                            String clazz;
-                            MPI.COMM_WORLD.recv(byte_buffer, byte_buffer.length, MPI.CHAR, MPI.ANY_SOURCE, tag);
-                            clazz = new String(byte_buffer);
-                            loadDSClass(clazz);
-                        } else if (tag == SYNCHRONIZE) {
-                            logger.debug("SYNC");
-                            boolean[] bool_buffer = new boolean[1];
-                            MPI.COMM_WORLD.recv(bool_buffer, 1,  MPI.BOOLEAN, MPI.ANY_SOURCE, tag);
-                            DSObjectNodeBarrier.add(status.getSource());
+            }
+            try {
+                status = MPI.COMM_WORLD.iProbe(MPI.ANY_SOURCE, MPI.ANY_TAG);
+                if (status != null) {
+                    int tag = status.getTag();
+                    if (tag == RES_OBJECT_R || tag == RES_OBJECT_RW) {
+                        logger.debug("Got Response");
+                        byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
+                        DSObjectBaseImpl obj;
+                        MPI.COMM_WORLD.recv(byte_buffer, byte_buffer.length, MPI.BYTE, MPI.ANY_SOURCE, tag);
+                        obj = (DSObjectBaseImpl) SerializationUtils.deserialize(byte_buffer);
+                        dsObjectSpaceMap.put(obj.getID(), obj);
+                    } else if (tag == REQ_OBJECT_R || tag == REQ_OBJECT_RW) {
+                        logger.debug("Got Request");
+                        byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
+                        MPI.COMM_WORLD.recv(byte_buffer, byte_buffer.length, MPI.BYTE, MPI.ANY_SOURCE, tag);
+                        int objectID = ByteBuffer.wrap(byte_buffer).getInt();
+                        Object obj = dsObjectSpaceMap.get(objectID);
+                        if (obj != null) {
+                            queue.offer(new DSObjectCommMessage(((tag == REQ_OBJECT_R) ? RES_OBJECT_R : RES_OBJECT_RW),
+                                                            status.getSource(),
+                                                            obj));
                         }
+                    } else if (tag == LOAD_DSCLASS) {
+                        logger.debug("Got LOAD_DSCLASS");
+                        byte[] byteBuffer = new byte[status.getCount(MPI.BYTE)];
+                        MPI.COMM_WORLD.recv(byteBuffer, byteBuffer.length, MPI.BYTE, MPI.ANY_SOURCE, tag);
+                        String clazz = new String(byteBuffer);
+                        loadDSClass(clazz);
+                    } else if (tag == SYNCHRONIZE) {
+                        logger.debug("Got SYNC");
+                        byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
+                        MPI.COMM_WORLD.recv(byte_buffer, 1,  MPI.BYTE, MPI.ANY_SOURCE, tag);
+                        DSObjectNodeBarrier.add(status.getSource());
                     }
-                } catch (MPIException e) {
-                    e.printStackTrace();
                 }
+            } catch (MPIException e) {
+                e.printStackTrace();
+            }
+
+            if (message != null) try {
+                request.test();
+            } catch (MPIException e) {
+                e.printStackTrace();
             }
         }
     }
