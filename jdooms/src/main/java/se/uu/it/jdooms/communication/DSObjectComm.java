@@ -8,17 +8,14 @@ import mpi.*;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.log4j.Logger;
 
+import se.uu.it.jdooms.objectspace.DSObjectBase;
 import se.uu.it.jdooms.objectspace.DSObjectBaseImpl;
 import se.uu.it.jdooms.objectspace.DSObjectSpace.Permission;
 import se.uu.it.jdooms.objectspace.DSObjectSpaceMap;
-import se.uu.it.jdooms.objectspace.DSReserved;
 
-import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.util.Arrays;
 import java.util.Queue;
 
 /**
@@ -121,10 +118,15 @@ public class DSObjectComm implements Runnable {
                     if (tag == RES_OBJECT_R || tag == RES_OBJECT_RW) {
                         logger.debug("Got Response");
                         byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
-                        DSObjectBaseImpl obj;
                         MPI.COMM_WORLD.recv(byte_buffer, byte_buffer.length, MPI.BYTE, MPI.ANY_SOURCE, tag);
-                        obj = (DSObjectBaseImpl) SerializationUtils.deserialize(byte_buffer);
-                        dsObjectSpaceMap.put(obj.getID(), obj);
+                        Object obj = SerializationUtils.deserialize(byte_buffer);
+                        if (tag == RES_OBJECT_R) {
+                            ((DSObjectBase)obj).setPermission(Permission.Read);
+                        } else {
+                            ((DSObjectBase)obj).setPermission(Permission.ReadWrite);
+                        }
+                        ((DSObjectBase)obj).setValid(true);
+                        dsObjectSpaceMap.put(((DSObjectBase)obj).getID(), obj);
                     } else if (tag == REQ_OBJECT_R || tag == REQ_OBJECT_RW) {
                         byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
                         MPI.COMM_WORLD.recv(byte_buffer, byte_buffer.length, MPI.BYTE, MPI.ANY_SOURCE, tag);
@@ -141,9 +143,9 @@ public class DSObjectComm implements Runnable {
                         MPI.COMM_WORLD.recv(byte_buffer, byte_buffer.length, MPI.BYTE, MPI.ANY_SOURCE, tag);
                         int objectID = ByteBuffer.wrap(byte_buffer).getInt();
                         logger.debug("Got RESERVE_OBJECT " + objectID);
-                        DSReserved dsReserved = new DSReserved();
-                        dsReserved.setReserved(true);
-                        dsObjectSpaceMap.put(objectID, dsReserved);
+                        DSObjectBaseImpl dsObjectBase = new DSObjectBaseImpl();
+                        dsObjectBase.setReserved(true);
+                        dsObjectSpaceMap.put(objectID, dsObjectBase);
                     } else if (tag == LOAD_DSCLASS) {
                         logger.debug("Got LOAD_DSCLASS");
                         byte[] byteBuffer = new byte[status.getCount(MPI.BYTE)];
@@ -224,7 +226,11 @@ public class DSObjectComm implements Runnable {
         Object obj;
         dsObjectSpaceMap.addObserver(this);
 
-        while (((DSObjectBaseImpl)(obj = dsObjectSpaceMap.get(objectID))).isReserved()) {
+        logger.debug("getting here");
+
+        obj = dsObjectSpaceMap.get(objectID);
+        while (!((DSObjectBase)obj).isValid()) {
+            logger.debug("but not here");
             try {
                 synchronized (this) {
                     this.wait();
@@ -232,12 +238,9 @@ public class DSObjectComm implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            obj = dsObjectSpaceMap.get(objectID);
         }
-
         dsObjectSpaceMap.removeObserver(this);
-        ((DSObjectBaseImpl)obj).setPermission(permission);
-        ((DSObjectBaseImpl)obj).setValid(true);
-
         return obj;
     }
 
