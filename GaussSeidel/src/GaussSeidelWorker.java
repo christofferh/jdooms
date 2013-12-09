@@ -53,17 +53,14 @@ public class GaussSeidelWorker implements DSObject{
         final long startTimeCalculate = System.currentTimeMillis();
         int workerID = dsObjectSpace.getWorkerID();
 
-        for (int tolerance = 0; tolerance < 1; tolerance++){ // while the tolerance criteria is not met
-            System.out.println("id " + workerID +  " Calculating..." + tolerance);
+        for (int tolerance = 0; tolerance < 10; tolerance++){ // while the tolerance criteria is not met
             Matrix id = (Matrix) dsObjectSpace.getObject(workerID, DSObjectSpace.Permission.ReadWrite);
             Matrix left = null;
             Matrix right = null;
-            printMatrix(id.matrix);
+            //System.out.println(printMatrix(id.matrix));
             if (workerID < 1) { //leftmost
-                System.out.println("id:" + workerID + " getting object " + (workerID + 1));
                 right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
             } else if (workerID == dsObjectSpace.getWorkerCount() - 1) { //rightmost
-                System.out.println("id:" + workerID + " getting object " + (workerID - 1));
                 left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
             } else { //in the middle
                 left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
@@ -72,10 +69,8 @@ public class GaussSeidelWorker implements DSObject{
             id.calculateRed(left, right);
             dsObjectSpace.synchronize();
             if (workerID < 1) { //leftmost
-                System.out.println("id:" + workerID + " getting object " + (workerID + 1));
                 right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
             } else if (workerID == dsObjectSpace.getWorkerCount() - 1) { //rightmost
-                System.out.println("id:" + workerID + " getting object " + (workerID - 1));
                 left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
             } else { //in the middle
                 left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
