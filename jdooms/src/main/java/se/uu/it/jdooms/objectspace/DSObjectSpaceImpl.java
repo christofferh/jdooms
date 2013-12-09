@@ -77,7 +77,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     @Override
     public void putObject(Object obj) {
         if (obj != null) {
-            objectSpaceMap.put(((DSObjectBaseImpl) obj).getID(), obj);
+            objectSpaceMap.put(((DSObjectBase) obj).getID(), obj);
         }
     }
 
@@ -88,7 +88,9 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     @Override
     public Object getObject(int objectID, Permission permission) {
         Object obj = objectSpaceMap.get(objectID);
-        if (obj != null && !((DSObjectBaseImpl) obj).isValid()) {
+        logger.debug("getObject() id " + objectID);
+        if (obj != null && !((DSObjectBase) obj).isValid()) {
+            logger.debug("getObject() remote id " + objectID);
             obj = DSObjectComm.getObject(objectID, permission);
         }
         return obj;
@@ -170,7 +172,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
 
         Object obj = objectSpaceMap.get(objectID);
 
-        if (obj != null && ((DSObjectBaseImpl) obj).isValid() ) {
+        if (obj != null && ((DSObjectBase) obj).isValid() ) {
             logger.debug("Fetched object from local cache");
             return obj;
         } else {
@@ -182,10 +184,10 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
                 Class tmp_clazz = (Class) findLoadedClass.invoke(cl, clazz);
                 obj = tmp_clazz.newInstance();
 
-                ((DSObjectBaseImpl)obj).setPermission(Permission.ReadWrite);
-                ((DSObjectBaseImpl)obj).setClassifier(Classifier.Shared);
-                ((DSObjectBaseImpl)obj).setID(objectID);
-                ((DSObjectBaseImpl)obj).setValid(true);
+                ((DSObjectBase)obj).setPermission(Permission.ReadWrite);
+                ((DSObjectBase)obj).setClassifier(Classifier.Shared);
+                ((DSObjectBase)obj).setID(objectID);
+                ((DSObjectBase)obj).setValid(true);
 
                 putObject(obj);
             } catch (InvocationTargetException e) {
