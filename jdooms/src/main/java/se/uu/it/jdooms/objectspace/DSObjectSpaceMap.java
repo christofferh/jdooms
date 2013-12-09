@@ -70,15 +70,15 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
     public void selfInvalidate() {
         logger.debug("self invalidating");
         for (Entry<K, V> entry : super.entrySet()) {
-            if (((DSObjectBaseImpl)entry.getValue()).getPermission() == DSObjectSpace.Permission.Read) {
+            if (((DSObjectBase)entry.getValue()).getPermission() == DSObjectSpace.Permission.Read) {
                 V obj = entry.getValue();
-                ((DSObjectBaseImpl)obj).setValid(false);
+                ((DSObjectBase)obj).setValid(false);
                 super.put(entry.getKey(), obj);
             }
         }
 
         for (V value : super.values()) {
-            logger.debug("object " + ((DSObjectBaseImpl)value).getID() + " is valid: " + ((DSObjectBaseImpl)value).isValid());
+            logger.debug("object " + ((DSObjectBase)value).getID() + " is valid: " + ((DSObjectBase)value).isValid());
         }
     }
 
