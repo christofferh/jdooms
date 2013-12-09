@@ -5,7 +5,7 @@ import java.io.Serializable;
 import static se.uu.it.jdooms.objectspace.DSObjectSpace.*;
 
 /**
- * Abstract base class to be implemented by all DSObject's
+ * Base class to be implemented by all DSObject's
  */
 public class DSObjectBaseImpl implements Serializable, DSObjectBase {
     private int ID;
