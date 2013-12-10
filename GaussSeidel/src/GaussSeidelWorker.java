@@ -103,17 +103,17 @@ public class GaussSeidelWorker implements DSObject{
     }
 
     private float[][] generateMatrix() {
-        /*Random rnd = new Random();
+        Random rnd = new Random();
         float[][] tmp = new float[20][20];
         for (int i = 0; i < tmp.length; i++) {
             for (int j = 0; j < tmp[i].length; j++) {
                 tmp[i][j] = rnd.nextInt(4);
             }
-        }*/
+        }
 
-        float[][] tmp2 = {{1,2,3,4},{2,3,4,1},{3,4,1,2},{4,1,2,3}};
+        //float[][] tmp = {{1,2,3,4},{2,3,4,1},{3,4,1,2},{4,1,2,3}};
 
-        return tmp2;
+        return tmp;
     }
 
     public String printMatrix(float[][] matrix) {

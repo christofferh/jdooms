@@ -9,6 +9,7 @@ workspace.xml
 tasks.xml
 *.iws
 *.log
+*.log.*
 log
 out/
 inspectionProfiles/
