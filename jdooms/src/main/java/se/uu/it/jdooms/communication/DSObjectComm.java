@@ -132,11 +132,15 @@ public class DSObjectComm implements Runnable {
                         MPI.COMM_WORLD.recv(byte_buffer, byte_buffer.length, MPI.BYTE, MPI.ANY_SOURCE, tag);
                         int objectID = ByteBuffer.wrap(byte_buffer).getInt();
                         logger.debug("Got Request, objectid " + objectID);
-                        Object obj = dsObjectSpaceMap.get(objectID, tag);
-                        if (obj != null) {
+                        Object obj = dsObjectSpaceMap.get(objectID);
+
+                        if (obj != null && ((DSObjectBase)obj).getPermission() == Permission.ReadWrite) { //TODO:kanske kolla om objektet är valid?
                             queue.offer(new DSObjectCommMessage(((tag == REQ_OBJECT_R) ? RES_OBJECT_R : RES_OBJECT_RW),
                                                             status.getSource(),
                                                             obj));
+                            if (tag == REQ_OBJECT_RW) {
+                                dsObjectSpaceMap.setPermission(objectID, Permission.Read);
+                            }
                         }
                     } else if (tag == RESERVE_OBJECT) {
                         byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
@@ -145,6 +149,8 @@ public class DSObjectComm implements Runnable {
                         logger.debug("Got RESERVE_OBJECT " + objectID);
                         DSObjectBaseImpl dsObjectBase = new DSObjectBaseImpl();
                         dsObjectBase.setReserved(true);
+                        dsObjectBase.setPermission(Permission.Read);
+                        dsObjectBase.setValid(false);
                         dsObjectSpaceMap.put(objectID, dsObjectBase);
                     } else if (tag == LOAD_DSCLASS) {
                         logger.debug("Got LOAD_DSCLASS");
@@ -169,10 +175,12 @@ public class DSObjectComm implements Runnable {
                 e.printStackTrace();
             }
 
-            if (message != null) try {
-                request.test();
-            } catch (MPIException e) {
-                e.printStackTrace();
+            if (message != null && request != null) { //if the cluster size is 1 request will be null since it wont be sent anywhere
+                try {
+                    request.test();
+                } catch (MPIException e) {
+                    e.printStackTrace();
+                }
             }
         }
         try {
@@ -187,7 +195,6 @@ public class DSObjectComm implements Runnable {
      */
     public void synchronize() {
         queue.offer(new DSObjectCommMessage(SYNCHRONIZE));
-        dsObjectSpaceMap.selfInvalidate();
     }
 
     /**

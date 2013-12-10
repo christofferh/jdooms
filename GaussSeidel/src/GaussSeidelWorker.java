@@ -19,10 +19,14 @@ public class GaussSeidelWorker implements DSObject{
 
         if(dsObjectSpace.getWorkerID() == 0) {
             float[][] matrix = generateMatrix();
-            System.out.println(printMatrix(matrix));
-
+            //System.out.println(printMatrix(matrix));
 
             int workerCount =  dsObjectSpace.getWorkerCount();
+            if ((matrix.length/workerCount) < 2) {
+                System.out.println("Array to small for number of workers");
+                System.exit(-1);
+            }
+
             System.out.println("Workercount: " + workerCount);
 
 
@@ -54,37 +58,44 @@ public class GaussSeidelWorker implements DSObject{
         int workerID = dsObjectSpace.getWorkerID();
 
         for (int tolerance = 0; tolerance < 10; tolerance++){ // while the tolerance criteria is not met
-            Matrix id = (Matrix) dsObjectSpace.getObject(workerID, DSObjectSpace.Permission.ReadWrite);
-            Matrix left = null;
-            Matrix right = null;
-            //System.out.println(printMatrix(id.matrix));
-            if (workerID < 1) { //leftmost
-                right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
-            } else if (workerID == dsObjectSpace.getWorkerCount() - 1) { //rightmost
-                left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
-            } else { //in the middle
-                left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
-                right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
+            try {
+                Matrix id = (Matrix) dsObjectSpace.getObject(workerID, DSObjectSpace.Permission.ReadWrite);
+                Matrix left = null;
+                Matrix right = null;
+                //System.out.println(printMatrix(id.matrix));
+                if (workerID < 1) { //leftmost
+                    right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
+                } else if (workerID == dsObjectSpace.getWorkerCount() - 1) { //rightmost
+                    left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
+                } else { //in the middle
+                    left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
+                    right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
+                }
+                id.calculateRed(left, right);
+                dsObjectSpace.synchronize();
+                if (workerID < 1) { //leftmost
+                    right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
+                } else if (workerID == dsObjectSpace.getWorkerCount() - 1) { //rightmost
+                    left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
+                } else { //in the middle
+                    left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
+                    right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
+                }
+                id.calculateBlack(left, right);
+                dsObjectSpace.synchronize();
+            } catch (ClassCastException cce) {
+                System.out.println("Thread: " + Thread.currentThread().getName());
+                System.out.println("WorkerID: " + workerID);
+                System.out.println("Tolerance: " + tolerance);
+                cce.printStackTrace();
             }
-            id.calculateRed(left, right);
-            dsObjectSpace.synchronize();
-            if (workerID < 1) { //leftmost
-                right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
-            } else if (workerID == dsObjectSpace.getWorkerCount() - 1) { //rightmost
-                left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
-            } else { //in the middle
-                left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
-                right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
-            }
-            id.calculateBlack(left, right);
-            dsObjectSpace.synchronize();
         }
         final long endTimeCalculate = System.currentTimeMillis();
 
         if(dsObjectSpace.getWorkerID() == 0) {
-            for (int i = 0; i < dsObjectSpace.getWorkerCount(); i++) {
+            /*for (int i = 0; i < dsObjectSpace.getWorkerCount(); i++) {
                 System.out.print(dsObjectSpace.getObject(i, DSObjectSpace.Permission.Read));
-            }
+            }*/
             System.out.println("Performance");
             System.out.println("Startup time: " + (endTimeInit - startTimeInit));
             System.out.println("Calculation time: " + (endTimeCalculate - startTimeCalculate));
@@ -103,17 +114,21 @@ public class GaussSeidelWorker implements DSObject{
     }
 
     private float[][] generateMatrix() {
-        /*Random rnd = new Random();
-        float[][] tmp = new float[20][20];
+        Random rnd = new Random();
+        int l = 2048;
+        float[][] tmp = new float[l][l];
+        int n = 0;
         for (int i = 0; i < tmp.length; i++) {
             for (int j = 0; j < tmp[i].length; j++) {
-                tmp[i][j] = rnd.nextInt(4);
+                tmp[i][j] = n%l;
+                n++;
             }
-        }*/
+            n++;
+        }
 
-        float[][] tmp2 = {{1,2,3,4},{2,3,4,1},{3,4,1,2},{4,1,2,3}};
+        //float[][] tmp = {{1,2,3,4,5,6,7,8},{2,3,4,5,6,7,8,1},{3,4,5,6,7,8,1,2},{4,5,6,7,8,1,2,3},{5,6,7,8,1,2,3,4},{6,7,8,1,2,3,4,5},{7,8,1,2,3,4,5,6},{8,1,2,3,4,5,6,7}};
 
-        return tmp2;
+        return tmp;
     }
 
     public String printMatrix(float[][] matrix) {

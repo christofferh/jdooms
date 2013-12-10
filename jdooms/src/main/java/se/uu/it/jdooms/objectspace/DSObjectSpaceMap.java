@@ -1,9 +1,13 @@
 package se.uu.it.jdooms.objectspace;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import se.uu.it.jdooms.communication.DSObjectComm;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReferenceArray;
+
 import static se.uu.it.jdooms.communication.DSObjectComm.*;
 
 /**
@@ -13,22 +17,25 @@ import static se.uu.it.jdooms.communication.DSObjectComm.*;
  */
 public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
     private static final Logger logger = Logger.getLogger(DSObjectSpaceMap.class);
-    private final ArrayList<Object> observers = new ArrayList<Object>();
+    //private final List<Object> observers = Collections.synchronizedList(new ArrayList<Object>());
+    private AtomicReferenceArray<Object> observers;
+    private int nodeWorkerCount;
 
-    public DSObjectSpaceMap() {
+    public DSObjectSpaceMap(int nodeWorkerCount) {
         super();
+        this.nodeWorkerCount = nodeWorkerCount;
+        observers = new AtomicReferenceArray<Object>(nodeWorkerCount);
     }
 
     /**
      * Notifies the registered observers
      */
     private void notifyObservers() {
-        if (observers.size() > 0) {
-            logger.debug("Notify observers");
-        }
-        for (Object obj : observers) {
-            synchronized (obj) {
-                obj.notify();
+        for (int i = 0; i < observers.length(); i++) {
+            if (observers.get(i) != null) {
+                synchronized (observers.get(i)) {
+                    observers.get(i).notify();
+                }
             }
         }
     }
@@ -39,7 +46,7 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
      */
     public void addObserver(Object obj) {
         logger.debug("addObserver: " + obj);
-        observers.add(obj);
+        observers.set(Integer.parseInt(Thread.currentThread().getName())%nodeWorkerCount, obj);
     }
 
     /**
@@ -48,7 +55,7 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
      */
     public void removeObserver(Object obj) {
         logger.debug("removeObserver: " + obj);
-        observers.remove(obj);
+        observers.set(Integer.parseInt(Thread.currentThread().getName())%nodeWorkerCount, null);
     }
 
     /**
@@ -73,27 +80,29 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
             if (((DSObjectBase)entry.getValue()).getPermission() == DSObjectSpace.Permission.Read) {
                 V obj = entry.getValue();
                 ((DSObjectBase)obj).setValid(false);
-                super.put(entry.getKey(), obj);
+                logger.debug("self invalidating, objectID " + ((DSObjectBase)obj).getID());
+                //super.put(entry.getKey(), obj);
             }
         }
 
         for (V value : super.values()) {
-            logger.debug("object " + ((DSObjectBase)value).getID() + " is valid: " + ((DSObjectBase)value).isValid());
+            logger.debug("object " + ((DSObjectBase)value).getID() + " is valid: " + ((DSObjectBase)value).isValid() + ", permission: " + ((DSObjectBase)value).getPermission());
         }
     }
 
-    /**
-     *
-     * @param key
-     * @param tag
-     * @return
-     */
-    public V get(K key, int tag) {
+    /*public V get(K key, int tag) {
         V obj = super.get(key);
         if (obj != null && tag == REQ_OBJECT_RW) {
-            ((DSObjectBase)obj).setPermission(DSObjectSpace.Permission.Read);
-            super.put(key, obj);
+            //((DSObjectBase)obj).setPermission(DSObjectSpace.Permission.Read);
+            //super.put(key, obj);
         }
         return obj;
+    }*/
+
+    public void setPermission(K key, DSObjectSpace.Permission permission) {
+        V obj = super.get(key);
+        if (obj != null && ((DSObjectBase)obj).getPermission() == DSObjectSpace.Permission.ReadWrite) {
+            ((DSObjectBase)obj).setPermission(permission);
+        }
     }
 }

@@ -30,9 +30,9 @@ public class DSObjectCommSender {
     public Request send(DSObjectCommMessage message) throws MPIException {
         Request request = null;
         if (message.tag == REQ_OBJECT_R || message.tag == REQ_OBJECT_RW) {
-            logger.debug("Sent Request");
             for (int node = 0; node < clusterSize; node++)
                 if (node != nodeID) {
+                    logger.debug("Sent Request tag: " + message.tag + " to " + node);
                     request = MPI.COMM_WORLD.iSend(message.objectID, message.objectID.capacity(), MPI.BYTE, node, message.tag);
                 }
         } else if (message.tag == RES_OBJECT_R || message.tag == RES_OBJECT_RW) {
