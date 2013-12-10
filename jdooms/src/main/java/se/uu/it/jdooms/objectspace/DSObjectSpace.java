@@ -8,7 +8,17 @@ public interface DSObjectSpace {
         Shared, Private
     }
     public enum Permission {
-        Read, ReadWrite
+        Read ("Read"), ReadWrite ("ReadWrite");
+
+        private final String permission;
+
+        private Permission(String s) {
+            permission = s;
+        }
+
+        public String toString() {
+            return permission;
+        }
     }
     int getNodeID();
 

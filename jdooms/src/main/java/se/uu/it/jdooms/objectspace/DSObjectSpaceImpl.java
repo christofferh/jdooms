@@ -25,14 +25,14 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     private final DSObjectComm DSObjectComm;
 
     public DSObjectSpaceImpl(String[] args) {
-        objectSpaceMap = new DSObjectSpaceMap<Integer, Object>();
         Queue<DSObjectCommMessage> queue = new ConcurrentLinkedQueue<DSObjectCommMessage>();
 
+        objectSpaceMap = new DSObjectSpaceMap<Integer, Object>(Integer.valueOf(args[1]));
         DSObjectComm = new DSObjectComm(args, objectSpaceMap, queue);
         Thread dsObjectCommThread = new Thread(DSObjectComm);
         dsObjectCommThread.start();
 
-        barrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectCommSynchronize(DSObjectComm));
+        barrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectCommSynchronize(DSObjectComm, objectSpaceMap));
     }
 
     /**
