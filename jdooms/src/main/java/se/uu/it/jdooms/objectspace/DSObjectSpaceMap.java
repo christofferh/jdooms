@@ -13,8 +13,7 @@ import static se.uu.it.jdooms.communication.DSObjectComm.*;
  */
 public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
     private static final Logger logger = Logger.getLogger(DSObjectSpaceMap.class);
-    private final List<Object> observers = Collections.synchronizedList(new ArrayList<Object>());
-    //private final Stack<Object> observers = new Stack<Object>();
+    private final ArrayList<Object> observers = new ArrayList<Object>();
 
     public DSObjectSpaceMap() {
         super();
@@ -95,7 +94,6 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
             ((DSObjectBase)obj).setPermission(DSObjectSpace.Permission.Read);
             super.put(key, obj);
         }
-
         return obj;
     }
 }
