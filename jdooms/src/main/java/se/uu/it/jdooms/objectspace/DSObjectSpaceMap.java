@@ -34,7 +34,9 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
         for (int i = 0; i < observers.length(); i++) {
             if (observers.get(i) != null) {
                 synchronized (observers.get(i)) {
-                    observers.get(i).notify();
+                    if (observers.get(i) != null) {
+                        observers.get(i).notify();
+                    }
                 }
             }
         }
