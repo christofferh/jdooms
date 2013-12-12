@@ -229,15 +229,10 @@ public class DSObjectComm implements Runnable {
         } else {
             queue.offer(new DSObjectCommMessage(REQ_OBJECT_RW, objectID));
         }
-
         Object obj;
         dsObjectSpaceMap.addObserver(this);
-
-        logger.debug("getting here");
-
         obj = dsObjectSpaceMap.get(objectID);
         while (!((DSObjectBase)obj).isValid()) {
-            logger.debug("but not here");
             try {
                 synchronized (this) {
                     this.wait();
