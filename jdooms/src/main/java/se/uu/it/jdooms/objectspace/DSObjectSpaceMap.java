@@ -76,13 +76,7 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
             if (((DSObjectBase)entry.getValue()).getPermission() == DSObjectSpace.Permission.Read) {
                 V obj = entry.getValue();
                 ((DSObjectBase)obj).setValid(false);
-                logger.debug("self invalidating, objectID " + ((DSObjectBase)obj).getID());
-                //super.put(entry.getKey(), obj);
             }
-        }
-
-        for (V value : super.values()) {
-            logger.debug("object " + ((DSObjectBase)value).getID() + " is valid: " + ((DSObjectBase)value).isValid() + ", permission: " + ((DSObjectBase)value).getPermission());
         }
     }
 
