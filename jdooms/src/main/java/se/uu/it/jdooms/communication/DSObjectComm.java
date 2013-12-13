@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import se.uu.it.jdooms.objectspace.DSObjectBase;
 import se.uu.it.jdooms.objectspace.DSObjectBaseImpl;
 import se.uu.it.jdooms.objectspace.DSObjectSpace.Permission;
+import se.uu.it.jdooms.objectspace.DSObjectSpaceImpl;
 import se.uu.it.jdooms.objectspace.DSObjectSpaceMap;
 
 import java.lang.reflect.InvocationTargetException;
@@ -155,7 +156,7 @@ public class DSObjectComm implements Runnable {
                         byte[] byteBuffer = new byte[status.getCount(MPI.BYTE)];
                         MPI.COMM_WORLD.recv(byteBuffer, byteBuffer.length, MPI.BYTE, MPI.ANY_SOURCE, tag);
                         String clazz = new String(byteBuffer);
-                        loadDSClass(clazz);
+                        DSObjectSpaceImpl.loadDSClass(clazz);
                     } else if (tag == SYNCHRONIZE) {
                         logger.debug("Got SYNC " + syncCounter);
                         syncCounter++;
@@ -246,52 +247,6 @@ public class DSObjectComm implements Runnable {
         }
         dsObjectSpaceMap.removeObserver(this);
         return obj;
-    }
-
-    /**
-     * Loads a specified DSClass in the class loader
-     * @param clazz fully qualified name of the class to load
-     */
-    private void loadDSClass(String clazz) {
-        Method findLoadedClass;
-        try {
-            findLoadedClass = ClassLoader.class.getDeclaredMethod("findLoadedClass", new Class[] { String.class });
-            findLoadedClass.setAccessible(true);
-            ClassLoader cl = this.getClass().getClassLoader();
-            Class tmp_cl = (Class) findLoadedClass.invoke(cl, clazz);
-
-            if (tmp_cl == null) {
-                ClassPool classPool = ClassPool.getDefault();
-                try {
-                    String path = System.getProperty("user.dir");
-                    classPool.appendClassPath(path + "/out/production/jdooms-worker");
-                    classPool.appendClassPath(path + "/../jdooms/bin");
-                } catch (NotFoundException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    CtClass ctClass = classPool.get(clazz);
-                    CtClass superCtClass = classPool.get("se.uu.it.jdooms.objectspace.DSObjectBaseImpl");
-                    CtClass ctSerializable = classPool.get("java.io.Serializable");
-
-                    if (ctClass.isFrozen()) ctClass.defrost();
-
-                    ctClass.setSuperclass(superCtClass);
-                    ctClass.addInterface(ctSerializable);
-                    ctClass.toClass();
-                } catch (CannotCompileException e) {
-                    e.printStackTrace();
-                } catch (NotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
     }
 }
 
