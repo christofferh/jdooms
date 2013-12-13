@@ -4,9 +4,6 @@ package se.uu.it.jdooms.objectspace;
  * User interface for DSObject
  */
 public interface DSObjectSpace {
-    public enum Classifier {
-        Shared, Private
-    }
     public enum Permission {
         Read ("Read"), ReadWrite ("ReadWrite");
 
