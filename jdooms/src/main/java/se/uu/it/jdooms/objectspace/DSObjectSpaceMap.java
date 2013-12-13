@@ -1,14 +1,9 @@
 package se.uu.it.jdooms.objectspace;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import se.uu.it.jdooms.communication.DSObjectComm;
 
-import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReferenceArray;
-
-import static se.uu.it.jdooms.communication.DSObjectComm.*;
 
 /**
  * Object store, extends ConcurrentHashMap to observe changes to objects
