@@ -147,7 +147,6 @@ public class DSObjectComm implements Runnable {
                         int objectID = ByteBuffer.wrap(byte_buffer).getInt();
                         logger.debug("Got RESERVE_OBJECT " + objectID);
                         DSObjectBaseImpl dsObjectBase = new DSObjectBaseImpl();
-                        dsObjectBase.setReserved(true);
                         dsObjectBase.setPermission(Permission.Read);
                         dsObjectBase.setValid(false);
                         dsObjectSpaceMap.put(objectID, dsObjectBase);

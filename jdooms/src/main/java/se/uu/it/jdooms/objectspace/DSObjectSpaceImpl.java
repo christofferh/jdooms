@@ -146,7 +146,6 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
                 obj = tmp_clazz.newInstance();
 
                 ((DSObjectBase)obj).setPermission(Permission.ReadWrite);
-                ((DSObjectBase)obj).setClassifier(Classifier.Shared);
                 ((DSObjectBase)obj).setID(objectID);
                 ((DSObjectBase)obj).setValid(true);
                 putObject(obj);
