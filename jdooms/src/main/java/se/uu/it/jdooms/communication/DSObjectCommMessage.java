@@ -15,9 +15,7 @@ public class DSObjectCommMessage {
     private static final Logger logger = Logger.getLogger(DSObjectCommMessage.class);
     public int tag;
     public int destination;
-    public ByteBuffer objectID;
-    public ByteBuffer clazz;
-    public ByteBuffer obj;
+    public ByteBuffer data;
 
     /**
      * Message for REQ_OBJECT_R/W (Get object) / RESERVE_OBJECT
@@ -26,7 +24,7 @@ public class DSObjectCommMessage {
      */
     public DSObjectCommMessage(int tag, int objectID) {
         this.tag = tag;
-        this.objectID = ByteBuffer.allocateDirect(4).putInt(objectID);
+        this.data = ByteBuffer.allocateDirect(4).putInt(objectID);
     }
 
     /**
@@ -39,8 +37,8 @@ public class DSObjectCommMessage {
         this.tag = tag;
         this.destination = destination;
         byte[] serialized = SerializationUtils.serialize((Serializable) obj); //om man gör detta parrallel måste org objektets permission sättas när objektet är serialiserat.
-        this.obj = ByteBuffer.allocateDirect(serialized.length);
-        this.obj.put(serialized);
+        this.data = ByteBuffer.allocateDirect(serialized.length);
+        this.data.put(serialized);
     }
 
     /**
@@ -50,12 +48,9 @@ public class DSObjectCommMessage {
      */
     public DSObjectCommMessage(int tag, String clazz) {
         this.tag = tag;
-
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(clazz.toCharArray().length);
-
         byteBuffer.put(clazz.getBytes());
-
-        this.clazz = byteBuffer;//= ByteBuffer.allocateDirect(clazz.length()).asCharBuffer().put(clazz);
+        this.data = byteBuffer;
     }
 
     /**
@@ -64,5 +59,6 @@ public class DSObjectCommMessage {
      */
     public DSObjectCommMessage(int tag) {
         this.tag = tag;
+        this.data = ByteBuffer.allocateDirect(0);
     }
 }

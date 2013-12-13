@@ -1,12 +1,14 @@
 package se.uu.it.jdooms.communication;
 
 
+import mpi.Datatype;
 import mpi.MPI;
 import mpi.MPIException;
 import mpi.Request;
 import org.apache.log4j.Logger;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static se.uu.it.jdooms.communication.DSObjectComm.*;
@@ -15,7 +17,6 @@ public class DSObjectCommSender {
     private static final Logger logger = Logger.getLogger(DSObjectCommSender.class);
     private final int nodeID;
     private final int clusterSize;
-    private int syncCounter = 0;
 
     public DSObjectCommSender(DSObjectComm DSObjectComm) {
         nodeID = DSObjectComm.getNodeID();
@@ -27,47 +28,81 @@ public class DSObjectCommSender {
      * @param message the message to send
      * @throws mpi.MPIException
      */
-    public Request send(DSObjectCommMessage message) throws MPIException {
+    public Request[] send(DSObjectCommMessage message) {
+        Request[] requests = null;
+        switch (message.tag) {
+            case REQ_OBJECT_R:
+                requests = broadcast(REQ_OBJECT_R, message.data);
+                break;
+            case REQ_OBJECT_RW:
+                requests = broadcast(REQ_OBJECT_RW, message.data);
+                break;
+            case RES_OBJECT_R:
+                requests = send(RES_OBJECT_R, message.data, message.destination);
+                break;
+            case RES_OBJECT_RW:
+                requests = send(RES_OBJECT_RW, message.data, message.destination);
+                break;
+            case RESERVE_OBJECT:
+                requests = broadcast(RESERVE_OBJECT, message.data);
+                break;
+            case LOAD_DSCLASS:
+                requests = broadcast(LOAD_DSCLASS, message.data);
+                break;
+            case SYNCHRONIZE:
+                requests = broadcast(SYNCHRONIZE, message.data);
+                break;
+            case FINALIZE:
+                requests = broadcast(FINALIZE, message.data);
+                break;
+            default:
+        }
+        return requests;
+    }
+
+    /**
+     * Broadscasts data to all nodes
+     * @param tag
+     * @param data
+     * @return
+     */
+    private Request[] broadcast(int tag, ByteBuffer data) {
         Request request = null;
-        if (message.tag == REQ_OBJECT_R || message.tag == REQ_OBJECT_RW) {
-            for (int node = 0; node < clusterSize; node++)
-                if (node != nodeID) {
-                    logger.debug("Sent Request tag: " + message.tag + " to " + node);
-                    request = MPI.COMM_WORLD.iSend(message.objectID, message.objectID.capacity(), MPI.BYTE, node, message.tag);
+        int iter = 0;
+        Request[] requests = new Request[clusterSize-1];
+        for (int node = 0; node < clusterSize; node++) {
+            if (node != nodeID) {
+                try {
+                    request = MPI.COMM_WORLD.iSend(data, data.capacity(), MPI.BYTE, node, tag);
+                    requests[iter] = request;
+                    iter++;
+                } catch (MPIException e) {
+                    e.printStackTrace();
                 }
-        } else if (message.tag == RES_OBJECT_R || message.tag == RES_OBJECT_RW) {
-            logger.debug("Sent Response");
-            request = MPI.COMM_WORLD.iSend(message.obj, message.obj.capacity(), MPI.BYTE, message.destination, message.tag);
-        } else if (message.tag == LOAD_DSCLASS) {
-            logger.debug("Sent LOAD_DSCLASS");
-            for (int node = 0; node < clusterSize; node++) {
-                if (node != nodeID) {
-                    request = MPI.COMM_WORLD.iSend(message.clazz, message.clazz.capacity(), MPI.BYTE, node, message.tag);
-                }
-            }
-        } else if (message.tag == RESERVE_OBJECT) {
-            logger.debug("Sent RESERVE_OBJECT");
-            for (int node = 0; node < clusterSize; node++) {
-                if (node != nodeID) {
-                    request = MPI.COMM_WORLD.iSend(message.objectID, message.objectID.capacity(), MPI.BYTE, node, message.tag);
-                }
-            }
-        } else if (message.tag == SYNCHRONIZE) {
-            logger.debug("Sent SYNC " + syncCounter);
-            syncCounter++;
-            for (int node = 0; node < clusterSize; node++) {
-                if (node != nodeID) {
-                    request = MPI.COMM_WORLD.iSend(ByteBuffer.allocateDirect(0), 0, MPI.BYTE, node, message.tag);
-                }
-            }
-        } else if (message.tag == FINALIZE) {
-            logger.debug("Sent FINALIZE");
-            for (int node = 0; node < clusterSize; node++) {
-                if (node != nodeID) {
-                    request = MPI.COMM_WORLD.iSend(ByteBuffer.allocateDirect(0), 0, MPI.BYTE, node, message.tag);
-                }
+
             }
         }
-        return request;
+        return requests;
     }
+
+    /**
+     * Send the data to a certain node
+     * @param tag
+     * @param data
+     * @param destination
+     * @return
+     */
+    private Request[] send(int tag, ByteBuffer data, int destination) {
+        Request request = null;
+        Request[] requests = new Request[1];
+        try {
+            request = MPI.COMM_WORLD.iSend(data, data.capacity(), MPI.BYTE, destination, tag);
+            requests[0] = request;
+        } catch (MPIException e) {
+            e.printStackTrace();
+        }
+        return requests;
+    }
+
+
 }
