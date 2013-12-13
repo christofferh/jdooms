@@ -1,15 +1,12 @@
 package se.uu.it.jdooms.communication;
 
 
-import mpi.Datatype;
 import mpi.MPI;
 import mpi.MPIException;
 import mpi.Request;
 import org.apache.log4j.Logger;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import static se.uu.it.jdooms.communication.DSObjectComm.*;
 
@@ -103,6 +100,4 @@ public class DSObjectCommSender {
         }
         return requests;
     }
-
-
 }
