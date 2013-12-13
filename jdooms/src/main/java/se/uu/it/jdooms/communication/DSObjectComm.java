@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Communication class for MPI communication
@@ -35,6 +36,7 @@ public class DSObjectComm implements Runnable {
     public static final int FINALIZE        = 50;
     public static final int RESERVE_OBJECT  = 60;
 
+    private static Queue<DSObjectCommMessage> queue = new ConcurrentLinkedQueue<DSObjectCommMessage>();;
 
     private int nodeID;
     private int clusterSize;
@@ -43,13 +45,11 @@ public class DSObjectComm implements Runnable {
     private int syncCounter = 0;
 
     private DSObjectSpaceMap<Integer, Object> dsObjectSpaceMap;
-    private Queue<DSObjectCommMessage> queue;
     private DSObjectCommSender DSObjectCommSender;
     private DSObjectNodeBarrier DSObjectNodeBarrier;
 
-    public DSObjectComm(String[] args, DSObjectSpaceMap<Integer, Object> dsObjectSpaceMap, Queue<DSObjectCommMessage> queue) {
+    public DSObjectComm(String[] args, DSObjectSpaceMap<Integer, Object> dsObjectSpaceMap) {
         this.dsObjectSpaceMap = dsObjectSpaceMap;
-        this.queue = queue;
 
         try {
             MPI.Init(args);
@@ -218,7 +218,7 @@ public class DSObjectComm implements Runnable {
      * Puts a loadDSClass message on the queue
      * @param clazz the class to load
      */
-    public void enqueueloadDSClass(String clazz) {
+    public static void enqueueloadDSClass(String clazz) {
         queue.offer(new DSObjectCommMessage(LOAD_DSCLASS, clazz));
     }
 
