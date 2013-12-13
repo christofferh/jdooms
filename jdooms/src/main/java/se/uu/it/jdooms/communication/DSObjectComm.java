@@ -201,7 +201,8 @@ public class DSObjectComm implements Runnable {
      * Puts a dsFinalize message on the queue
      */
     public void dsFinalize() {
-        queue.offer(new DSObjectCommMessage(FINALIZE));
+        synchronize();
+        receiving = false;
     }
 
     /**
