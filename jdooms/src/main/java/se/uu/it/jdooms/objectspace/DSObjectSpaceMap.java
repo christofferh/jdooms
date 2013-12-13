@@ -17,7 +17,6 @@ import static se.uu.it.jdooms.communication.DSObjectComm.*;
  */
 public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
     private static final Logger logger = Logger.getLogger(DSObjectSpaceMap.class);
-    //private final List<Object> observers = Collections.synchronizedList(new ArrayList<Object>());
     private AtomicReferenceArray<Object> observers;
     private int nodeWorkerCount;
 
@@ -92,15 +91,11 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
         }
     }
 
-    /*public V get(K key, int tag) {
-        V obj = super.get(key);
-        if (obj != null && tag == REQ_OBJECT_RW) {
-            //((DSObjectBase)obj).setPermission(DSObjectSpace.Permission.Read);
-            //super.put(key, obj);
-        }
-        return obj;
-    }*/
-
+    /**
+     * Sets the permission permission on the object at index key
+     * @param key object ID
+     * @param permission Read, ReadWrite
+     */
     public void setPermission(K key, DSObjectSpace.Permission permission) {
         V obj = super.get(key);
         if (obj != null && ((DSObjectBase)obj).getPermission() == DSObjectSpace.Permission.ReadWrite) {
