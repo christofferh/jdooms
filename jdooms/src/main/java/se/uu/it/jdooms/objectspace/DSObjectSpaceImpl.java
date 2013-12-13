@@ -5,12 +5,9 @@ import org.apache.log4j.Logger;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Queue;
 import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CyclicBarrier;
 
-import se.uu.it.jdooms.communication.DSObjectCommMessage;
 import se.uu.it.jdooms.communication.DSObjectComm;
 
 import se.uu.it.jdooms.communication.DSObjectCommSynchronize;
@@ -28,17 +25,15 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
 
     private final DSObjectSpaceMap<Integer, Object> objectSpaceMap;
     private final CyclicBarrier barrier;
-    private final DSObjectComm DSObjectComm;
+    private final DSObjectComm dsObjectComm;
 
     public DSObjectSpaceImpl(String[] args) {
-        Queue<DSObjectCommMessage> queue = new ConcurrentLinkedQueue<DSObjectCommMessage>();
-
         objectSpaceMap = new DSObjectSpaceMap<Integer, Object>(Integer.valueOf(args[1]));
-        DSObjectComm = new DSObjectComm(args, objectSpaceMap, queue);
-        Thread dsObjectCommThread = new Thread(DSObjectComm);
-        dsObjectCommThread.start();
+        dsObjectComm = new DSObjectComm(args, objectSpaceMap);
+        barrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectCommSynchronize(dsObjectComm, objectSpaceMap));
 
-        barrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectCommSynchronize(DSObjectComm, objectSpaceMap));
+        Thread dsObjectCommThread = new Thread(dsObjectComm);
+        dsObjectCommThread.start();
     }
 
     /**
@@ -47,7 +42,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      */
     @Override
     public int getNodeID() {
-        return DSObjectComm.getNodeID();
+        return dsObjectComm.getNodeID();
     }
 
     /**
@@ -65,7 +60,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      */
     @Override
     public int getWorkerCount() {
-        return DSObjectComm.getWorkerCount();
+        return dsObjectComm.getWorkerCount();
     }
 
     /**
@@ -73,7 +68,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      * @return the cluster size
      */
     public int getClusterSize() {
-        return DSObjectComm.getClusterSize();
+        return dsObjectComm.getClusterSize();
     }
 
     /**
@@ -97,13 +92,13 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         logger.debug("getObject() id " + objectID);
         if (obj != null && !((DSObjectBase) obj).isValid()) {
             logger.debug("getObject() remote id " + objectID);
-            obj = DSObjectComm.getObject(objectID, permission);
+            obj = dsObjectComm.getObject(objectID, permission);
         }
         return obj;
     }
 
     public void reserveObject(int objectID) {
-        DSObjectComm.reserveObject(objectID);
+        dsObjectComm.reserveObject(objectID);
     }
     /**
      * Barrier call
@@ -124,7 +119,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      */
     @Override
     public void dsFinalize() {
-        DSObjectComm.dsFinalize();
+        dsObjectComm.dsFinalize();
     }
 
     /**
@@ -144,7 +139,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
             logger.debug("Fetched object from local cache");
             return obj;
         } else {
-            DSObjectComm.reserveObject(objectID);
+            dsObjectComm.reserveObject(objectID);
             try {
                 logger.debug("Creating object and putting in local cache");
                 Class tmp_clazz = this.getClass().getClassLoader().loadClass(clazz);
@@ -175,6 +170,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
             ClassLoader cl = DSObjectSpaceImpl.class.getClassLoader();
             Class dsClazz = (Class) findLoadedClass.invoke(cl, clazz);
             if (dsClazz == null) {
+                DSObjectComm.enqueueloadDSClass(clazz);
                 ClassPool classPool = ClassPool.getDefault();
                 try {
                     classPool.appendClassPath(USER_DIR + JDOOMS_BIN_DIR);
