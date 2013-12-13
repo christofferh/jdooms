@@ -5,9 +5,6 @@ import org.apache.log4j.Logger;
 
 import java.io.Serializable;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.IntBuffer;
-
 /**
  * Message structure for a DSOObject Message
  */
