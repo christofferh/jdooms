@@ -20,6 +20,12 @@ import se.uu.it.jdooms.communication.DSObjectCommSynchronize;
  */
 public class DSObjectSpaceImpl implements DSObjectSpace {
     private static final Logger logger = Logger.getLogger(DSObjectSpaceImpl.class);
+    private static final String CLASSLOADER_METHOD = "findLoadedClass";
+    private static final String USER_DIR = System.getProperty("user.dir");
+    private static final String JDOOMS_BIN_DIR = "/../jdooms/bin";
+    private static final String DSOBJECT_BINARY_NAME = "se.uu.it.jdooms.objectspace.DSObjectBaseImpl";
+    private static final String SERIALIZABLE_BINARY_NAME = "java.io.Serializable";
+
     private final DSObjectSpaceMap<Integer, Object> objectSpaceMap;
     private final CyclicBarrier barrier;
     private final DSObjectComm DSObjectComm;
@@ -132,29 +138,53 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     @Override
     public Object dsNew(String clazz, int objectID) throws IllegalAccessException, InstantiationException {
         /* Make sure the ds class is loaded before trying to get it */
-        Method findLoadedClass = null;
+        loadDSClass(clazz);
+        Object obj = objectSpaceMap.get(objectID);
+        if (obj != null && ((DSObjectBase) obj).isValid() ) {
+            logger.debug("Fetched object from local cache");
+            return obj;
+        } else {
+            DSObjectComm.reserveObject(objectID);
+            try {
+                logger.debug("Creating object and putting in local cache");
+                Class tmp_clazz = this.getClass().getClassLoader().loadClass(clazz);
+                obj = tmp_clazz.newInstance();
+
+                ((DSObjectBase)obj).setPermission(Permission.ReadWrite);
+                ((DSObjectBase)obj).setClassifier(Classifier.Shared);
+                ((DSObjectBase)obj).setID(objectID);
+                ((DSObjectBase)obj).setValid(true);
+                putObject(obj);
+            } catch (ClassNotFoundException e) {
+                logger.debug("This should never happen, because we forced the class to be loaded before running this");
+                e.printStackTrace();
+            }
+            return obj;
+        }
+    }
+
+    /**
+     * Loads a specified DSClass in the class loader
+     * @param clazz fully qualified name of the class to load
+     */
+    public static void loadDSClass(String clazz) {
+        Method findLoadedClass;
         try {
-            findLoadedClass = ClassLoader.class.getDeclaredMethod("findLoadedClass", new Class[] { String.class });
+            findLoadedClass = ClassLoader.class.getDeclaredMethod(CLASSLOADER_METHOD, new Class[] { String.class });
             findLoadedClass.setAccessible(true);
-            ClassLoader cl = this.getClass().getClassLoader();
-            Class tmp_cl = (Class) findLoadedClass.invoke(cl, clazz);
-            if (tmp_cl == null) {
-                logger.debug("Creating and sending DSclass: " + clazz);
-                DSObjectComm.enqueueloadDSClass(clazz);
+            ClassLoader cl = DSObjectSpaceImpl.class.getClassLoader();
+            Class dsClazz = (Class) findLoadedClass.invoke(cl, clazz);
+            if (dsClazz == null) {
                 ClassPool classPool = ClassPool.getDefault();
                 try {
-                    String path = System.getProperty("user.dir");
-                    classPool.appendClassPath(path + "/out/production/jdooms-worker");
-                    classPool.appendClassPath(path + "/../jdooms/bin");
+                    classPool.appendClassPath(USER_DIR + JDOOMS_BIN_DIR);
                 } catch (NotFoundException e) {
                     e.printStackTrace();
                 }
                 try {
                     CtClass ctClass = classPool.get(clazz);
-                    CtClass superCtClass = classPool.get("se.uu.it.jdooms.objectspace.DSObjectBaseImpl");
-                    CtClass ctSerializable = classPool.get("java.io.Serializable");
-
-                    if (ctClass.isFrozen()) { ctClass.defrost(); }
+                    CtClass superCtClass = classPool.get(DSOBJECT_BINARY_NAME);
+                    CtClass ctSerializable = classPool.get(SERIALIZABLE_BINARY_NAME);
                     ctClass.setSuperclass(superCtClass);
                     ctClass.addInterface(ctSerializable);
                     ctClass.toClass();
@@ -168,32 +198,8 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
             e.printStackTrace();
         } catch (InvocationTargetException e) {
             e.printStackTrace();
-        }
-
-        Object obj = objectSpaceMap.get(objectID);
-
-        if (obj != null && ((DSObjectBase) obj).isValid() ) {
-            logger.debug("Fetched object from local cache");
-            return obj;
-        } else {
-            DSObjectComm.reserveObject(objectID);
-            try {
-                assert findLoadedClass != null;
-                logger.debug("Creating object and putting in local cache");
-                ClassLoader cl = this.getClass().getClassLoader();
-                Class tmp_clazz = (Class) findLoadedClass.invoke(cl, clazz);
-                obj = tmp_clazz.newInstance();
-
-                ((DSObjectBase)obj).setPermission(Permission.ReadWrite);
-                ((DSObjectBase)obj).setClassifier(Classifier.Shared);
-                ((DSObjectBase)obj).setID(objectID);
-                ((DSObjectBase)obj).setValid(true);
-
-                putObject(obj);
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-            return obj;
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
     }
 }
