@@ -9,10 +9,8 @@ import static se.uu.it.jdooms.objectspace.DSObjectSpace.*;
  */
 public class DSObjectBaseImpl implements Serializable, DSObjectBase {
     private int ID;
-    private Classifier classifier;
     private boolean valid;
     private Permission permission;
-    private boolean reserved;
 
     /**
      * Gets the global ID of the distributed object
@@ -30,24 +28,6 @@ public class DSObjectBaseImpl implements Serializable, DSObjectBase {
     @Override
     public void setID(int ID) {
         this.ID = ID;
-    }
-
-    /**
-     * Gets the classifier of the distributed object
-     * @return classifier
-     */
-    @Override
-    public Classifier getClassifier() {
-        return classifier;
-    }
-
-    /**
-     * Sets the classifier of the distributed object
-     * @param classifier classifier
-     */
-    @Override
-    public void setClassifier(DSObjectSpace.Classifier classifier) {
-        this.classifier = classifier;
     }
 
     /**
@@ -84,15 +64,5 @@ public class DSObjectBaseImpl implements Serializable, DSObjectBase {
     @Override
     public void setPermission(Permission permission) {
         this.permission = permission;
-    }
-
-    @Override
-    public boolean isReserved() {
-        return reserved;
-    }
-
-    @Override
-    public void setReserved(boolean reserved) {
-        this.reserved = reserved;
     }
 }

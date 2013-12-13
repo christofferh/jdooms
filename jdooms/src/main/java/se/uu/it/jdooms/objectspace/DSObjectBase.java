@@ -8,10 +8,6 @@ public interface DSObjectBase {
 
     public void setID(int ID);
 
-    public DSObjectSpace.Classifier getClassifier();
-
-    public void setClassifier(DSObjectSpace.Classifier classifier);
-
     DSObjectSpace.Permission getPermission();
 
     void setPermission(DSObjectSpace.Permission permission);
@@ -19,8 +15,4 @@ public interface DSObjectBase {
     boolean isValid();
 
     void setValid(boolean valid);
-
-    boolean isReserved();
-
-    void setReserved(boolean reserved);
 }
