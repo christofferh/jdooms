@@ -100,6 +100,7 @@ public class GaussSeidelWorker implements DSObject{
             System.out.println("Startup time: " + (endTimeInit - startTimeInit));
             System.out.println("Calculation time: " + (endTimeCalculate - startTimeCalculate));
         }
+        dsObjectSpace.dsFinalize();
     }
 
 
