@@ -92,6 +92,7 @@ public class DSObjectCommReceiver {
     private void gotResponse(Permission permission, ByteBuffer byteBuffer) {
         logger.debug("Got Response");
         byte[] bytes = new byte[byteBuffer.capacity()];
+        byteBuffer.get(bytes);
         Object obj = SerializationUtils.deserialize(bytes);
 
         if (permission == Permission.Read) {
