@@ -115,7 +115,6 @@ public class GaussSeidelWorker implements DSObject{
     }
 
     private float[][] generateMatrix() {
-        //Random rnd = new Random();
         int l = 64;
         float[][] tmp = new float[l][l];
         int n = 0;
