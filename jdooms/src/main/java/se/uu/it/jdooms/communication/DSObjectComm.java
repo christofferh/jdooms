@@ -1,9 +1,5 @@
 package se.uu.it.jdooms.communication;
 
-import javassist.CannotCompileException;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.NotFoundException;
 import mpi.*;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.log4j.Logger;
@@ -14,8 +10,6 @@ import se.uu.it.jdooms.objectspace.DSObjectSpace.Permission;
 import se.uu.it.jdooms.objectspace.DSObjectSpaceImpl;
 import se.uu.it.jdooms.objectspace.DSObjectSpaceMap;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,15 +36,14 @@ public class DSObjectComm implements Runnable {
     private int clusterSize;
     private int workerCount;
     private boolean receiving;
-    private int syncCounter = 0;
 
     private DSObjectSpaceMap<Integer, Object> dsObjectSpaceMap;
-    private DSObjectCommSender DSObjectCommSender;
-    private DSObjectNodeBarrier DSObjectNodeBarrier;
+    private DSObjectCommSender dsObjectCommSender;
+    private DSObjectCommReceiver dsObjectCommReceiver;
+    private DSObjectNodeBarrier dsObjectNodeBarrier;
 
     public DSObjectComm(String[] args, DSObjectSpaceMap<Integer, Object> dsObjectSpaceMap) {
         this.dsObjectSpaceMap = dsObjectSpaceMap;
-
         try {
             MPI.Init(args);
             nodeID = MPI.COMM_WORLD.getRank();
@@ -60,8 +53,9 @@ public class DSObjectComm implements Runnable {
             e.printStackTrace();
         }
 
-        DSObjectCommSender = new DSObjectCommSender(this);
-        DSObjectNodeBarrier = new DSObjectNodeBarrier(nodeID, clusterSize);
+        dsObjectNodeBarrier = new DSObjectNodeBarrier(nodeID, clusterSize);
+        dsObjectCommSender = new DSObjectCommSender(this);
+        dsObjectCommReceiver = new DSObjectCommReceiver(dsObjectSpaceMap, dsObjectNodeBarrier);
         receiving = true;
     }
 
@@ -93,8 +87,8 @@ public class DSObjectComm implements Runnable {
      * Return the node barrier
      * @return the node barrier
      */
-    public DSObjectNodeBarrier getDSObjectNodeBarrier() {
-        return DSObjectNodeBarrier;
+    public DSObjectNodeBarrier getDsObjectNodeBarrier() {
+        return dsObjectNodeBarrier;
     }
     /**
      * Start the communication
@@ -105,68 +99,16 @@ public class DSObjectComm implements Runnable {
         DSObjectCommMessage message;
         Status status;
         ArrayList<Request> requests = new ArrayList<Request>();
+
         while (receiving) {
             message = queue.poll();
             if (message != null) {
-                Collections.addAll(requests, DSObjectCommSender.send(message));
+                Collections.addAll(requests, dsObjectCommSender.send(message));
             }
             try {
                 status = MPI.COMM_WORLD.iProbe(MPI.ANY_SOURCE, MPI.ANY_TAG);
                 if (status != null) {
-                    int tag = status.getTag();
-                    if (tag == RES_OBJECT_R || tag == RES_OBJECT_RW) {
-                        logger.debug("Got Response");
-                        byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
-                        MPI.COMM_WORLD.recv(byte_buffer, byte_buffer.length, MPI.BYTE, MPI.ANY_SOURCE, tag);
-                        Object obj = SerializationUtils.deserialize(byte_buffer);
-                        if (tag == RES_OBJECT_R) {
-                            ((DSObjectBase)obj).setPermission(Permission.Read);
-                        } else {
-                            ((DSObjectBase)obj).setPermission(Permission.ReadWrite);
-                        }
-                        ((DSObjectBase)obj).setValid(true);
-                        dsObjectSpaceMap.put(((DSObjectBase)obj).getID(), obj);
-                    } else if (tag == REQ_OBJECT_R || tag == REQ_OBJECT_RW) {
-                        byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
-                        MPI.COMM_WORLD.recv(byte_buffer, byte_buffer.length, MPI.BYTE, MPI.ANY_SOURCE, tag);
-                        int objectID = ByteBuffer.wrap(byte_buffer).getInt();
-                        logger.debug("Got Request, objectid " + objectID);
-                        Object obj = dsObjectSpaceMap.get(objectID);
-
-                        if (obj != null && ((DSObjectBase)obj).getPermission() == Permission.ReadWrite) { //TODO:kanske kolla om objektet är valid?
-                            queue.offer(new DSObjectCommMessage(((tag == REQ_OBJECT_R) ? RES_OBJECT_R : RES_OBJECT_RW),
-                                                            status.getSource(),
-                                                            obj));
-                            if (tag == REQ_OBJECT_RW) {
-                                dsObjectSpaceMap.setPermission(objectID, Permission.Read);
-                            }
-                        }
-                    } else if (tag == RESERVE_OBJECT) {
-                        byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
-                        MPI.COMM_WORLD.recv(byte_buffer, byte_buffer.length, MPI.BYTE, MPI.ANY_SOURCE, tag);
-                        int objectID = ByteBuffer.wrap(byte_buffer).getInt();
-                        logger.debug("Got RESERVE_OBJECT " + objectID);
-                        DSObjectBaseImpl dsObjectBase = new DSObjectBaseImpl();
-                        dsObjectBase.setPermission(Permission.Read);
-                        dsObjectBase.setValid(false);
-                        dsObjectSpaceMap.put(objectID, dsObjectBase);
-                    } else if (tag == LOAD_DSCLASS) {
-                        logger.debug("Got LOAD_DSCLASS");
-                        byte[] byteBuffer = new byte[status.getCount(MPI.BYTE)];
-                        MPI.COMM_WORLD.recv(byteBuffer, byteBuffer.length, MPI.BYTE, MPI.ANY_SOURCE, tag);
-                        String clazz = new String(byteBuffer);
-                        DSObjectSpaceImpl.loadDSClass(clazz);
-                    } else if (tag == SYNCHRONIZE) {
-                        logger.debug("Got SYNC " + syncCounter);
-                        syncCounter++;
-                        byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
-                        MPI.COMM_WORLD.recv(byte_buffer, 1,  MPI.BYTE, MPI.ANY_SOURCE, tag);
-                        DSObjectNodeBarrier.add(status.getSource());
-                    } else if (tag == FINALIZE) {
-                        logger.debug("Got FINALIZE");
-                        byte[] byte_buffer = new byte[status.getCount(MPI.BYTE)];
-                        MPI.COMM_WORLD.recv(byte_buffer, 1,  MPI.BYTE, MPI.ANY_SOURCE, tag);
-                    }
+                    dsObjectCommReceiver.receive(status);
                 }
             } catch (MPIException e) {
                 e.printStackTrace();
@@ -207,18 +149,11 @@ public class DSObjectComm implements Runnable {
     }
 
     /**
-     * Puts a reserveObject on the queue
-     * @param objectID
+     * Puts a message on the send queue
+     * @param dsObjectCommMessage the message to enqueue
      */
-    public void reserveObject(int objectID) {
-        queue.offer(new DSObjectCommMessage(RESERVE_OBJECT, objectID));
-    }
-    /**
-     * Puts a loadDSClass message on the queue
-     * @param clazz the class to load
-     */
-    public static void enqueueloadDSClass(String clazz) {
-        queue.offer(new DSObjectCommMessage(LOAD_DSCLASS, clazz));
+    public static void enqueuMessage(DSObjectCommMessage dsObjectCommMessage) {
+        queue.offer(dsObjectCommMessage);
     }
 
     /**

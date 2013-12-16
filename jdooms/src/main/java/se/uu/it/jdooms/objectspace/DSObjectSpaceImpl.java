@@ -10,7 +10,11 @@ import java.util.concurrent.CyclicBarrier;
 
 import se.uu.it.jdooms.communication.DSObjectComm;
 
+import se.uu.it.jdooms.communication.DSObjectCommMessage;
 import se.uu.it.jdooms.communication.DSObjectCommSynchronize;
+
+import static se.uu.it.jdooms.communication.DSObjectComm.LOAD_DSCLASS;
+import static se.uu.it.jdooms.communication.DSObjectComm.RESERVE_OBJECT;
 
 /**
  * Implementation of the Distributed Object Space
@@ -97,9 +101,6 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         return obj;
     }
 
-    public void reserveObject(int objectID) {
-        dsObjectComm.reserveObject(objectID);
-    }
     /**
      * Barrier call
      */
@@ -134,14 +135,14 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     public Object dsNew(String clazz, int objectID) throws IllegalAccessException, InstantiationException {
         /* Make sure the ds class is loaded before trying to get it */
         if (loadDSClass(clazz)) {
-            DSObjectComm.enqueueloadDSClass(clazz);
+            DSObjectComm.enqueuMessage(new DSObjectCommMessage(LOAD_DSCLASS, clazz));
         }
         Object obj = objectSpaceMap.get(objectID);
         if (obj != null && ((DSObjectBase) obj).isValid() ) {
             logger.debug("Fetched object from local cache");
             return obj;
         } else {
-            dsObjectComm.reserveObject(objectID);
+            DSObjectComm.enqueuMessage(new DSObjectCommMessage(RESERVE_OBJECT, objectID));
             try {
                 logger.debug("Creating object and putting in local cache");
                 Class tmp_clazz = this.getClass().getClassLoader().loadClass(clazz);

@@ -5,6 +5,8 @@ import org.apache.log4j.Logger;
 
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+
 /**
  * Message structure for a DSOObject Message
  */
@@ -39,7 +41,7 @@ public class DSObjectCommMessage {
     }
 
     /**
-     * Message for LOAD_DSCLASS (Preloadsa class on the remote nodes)
+     * Message for LOAD_DSCLASS (Preloads a class on the remote nodes)
      * @param tag           LOAD_DSCLASS
      * @param clazz         the class to load (fully qualified name)
      */
@@ -48,6 +50,7 @@ public class DSObjectCommMessage {
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(clazz.toCharArray().length);
         byteBuffer.put(clazz.getBytes());
         this.data = byteBuffer;
+
     }
 
     /**
