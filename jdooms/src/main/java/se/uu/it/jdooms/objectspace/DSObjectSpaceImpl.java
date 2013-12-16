@@ -27,14 +27,16 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     private static final String DSOBJECT_BINARY_NAME = "se.uu.it.jdooms.objectspace.DSObjectBaseImpl";
     private static final String SERIALIZABLE_BINARY_NAME = "java.io.Serializable";
 
-    private final DSObjectSpaceMap<Integer, Object> objectSpaceMap;
+    private final DSObjectSpaceMap<Integer, Object> cache;
+    private final DSObjectSpaceMap<Integer, Object> tmp_cache;
     private final CyclicBarrier barrier;
     private final DSObjectComm dsObjectComm;
 
     public DSObjectSpaceImpl(String[] args) {
-        objectSpaceMap = new DSObjectSpaceMap<Integer, Object>(Integer.valueOf(args[1]));
-        dsObjectComm = new DSObjectComm(args, objectSpaceMap);
-        barrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectCommSynchronize(dsObjectComm, objectSpaceMap));
+        cache = new DSObjectSpaceMap<Integer, Object>(Integer.valueOf(args[1]));
+        tmp_cache = new DSObjectSpaceMap<Integer, Object>(Integer.valueOf(args[1]));
+        dsObjectComm = new DSObjectComm(args, cache, tmp_cache);
+        barrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectCommSynchronize(dsObjectComm, cache));
 
         Thread dsObjectCommThread = new Thread(dsObjectComm);
         dsObjectCommThread.start();
@@ -82,7 +84,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     @Override
     public void putObject(Object obj) {
         if (obj != null) {
-            objectSpaceMap.put(((DSObjectBase) obj).getID(), obj);
+            cache.put(((DSObjectBase) obj).getID(), obj);
         }
     }
 
@@ -92,12 +94,14 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      */
     @Override
     public Object getObject(int objectID, Permission permission) {
-        Object obj = objectSpaceMap.get(objectID);
+        Object obj = tmp_cache.get(objectID);
         logger.debug("getObject() id " + objectID);
         if (obj != null && !((DSObjectBase) obj).isValid()) {
             logger.debug("getObject() remote id " + objectID);
             obj = dsObjectComm.getObject(objectID, permission);
         }
+        //get from tmp_cache
+        //get remote, put respone into tmp_cache
         return obj;
     }
 
@@ -106,6 +110,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      */
     @Override
     public void synchronize() {
+        //merge tmp_cache with cache
         try {
             barrier.await();
         } catch (InterruptedException e) {
@@ -137,7 +142,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         if (loadDSClass(clazz)) {
             DSObjectComm.enqueuMessage(new DSObjectCommMessage(LOAD_DSCLASS, clazz));
         }
-        Object obj = objectSpaceMap.get(objectID);
+        Object obj = cache.get(objectID);
         if (obj != null && ((DSObjectBase) obj).isValid() ) {
             logger.debug("Fetched object from local cache");
             return obj;

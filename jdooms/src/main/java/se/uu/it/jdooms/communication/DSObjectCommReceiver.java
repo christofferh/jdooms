@@ -16,16 +16,18 @@ import static se.uu.it.jdooms.communication.DSObjectComm.*;
 
 
 import java.nio.ByteBuffer;
-import java.util.Queue;
 
 public class DSObjectCommReceiver {
     private static final Logger logger = Logger.getLogger(DSObjectCommReceiver.class);
-    private DSObjectSpaceMap<Integer, Object> dsObjectSpaceMap;
+    private DSObjectSpaceMap<Integer, Object> cache;
+    private DSObjectSpaceMap<Integer, Object> tmp_cache;
     private DSObjectNodeBarrier dsObjectNodeBarrier;
 
-    public DSObjectCommReceiver(DSObjectSpaceMap<Integer, Object> dsObjectSpaceMap,
+    public DSObjectCommReceiver(DSObjectSpaceMap<Integer, Object> cache,
+                                DSObjectSpaceMap<Integer, Object> tmp_cache,
                                 DSObjectNodeBarrier dsObjectNodeBarrier) {
-        this.dsObjectSpaceMap = dsObjectSpaceMap;
+        this.cache = cache;
+        this.tmp_cache = tmp_cache;
         this.dsObjectNodeBarrier = dsObjectNodeBarrier;
     }
 
@@ -73,7 +75,7 @@ public class DSObjectCommReceiver {
         DSObjectBaseImpl dsObjectBase = new DSObjectBaseImpl();
         dsObjectBase.setPermission(Permission.Read);
         dsObjectBase.setValid(false);
-        dsObjectSpaceMap.put(objectID, dsObjectBase);
+        cache.put(objectID, dsObjectBase);
     }
 
     private void gotLoadDsClass(ByteBuffer byteBuffer) {
@@ -101,13 +103,13 @@ public class DSObjectCommReceiver {
             ((DSObjectBase)obj).setPermission(Permission.ReadWrite);
         }
         ((DSObjectBase)obj).setValid(true);
-        dsObjectSpaceMap.put(((DSObjectBase)obj).getID(), obj);
+        tmp_cache.put(((DSObjectBase) obj).getID(), obj);
     }
 
     private void gotRequest(Permission permission, ByteBuffer byteBuffer, int destination) {
         int objectID = byteBuffer.getInt();
         logger.debug("Got Request, objectid " + objectID);
-        Object obj = dsObjectSpaceMap.get(objectID);
+        Object obj = cache.get(objectID);
 
         if (obj != null && ((DSObjectBase)obj).getPermission() == Permission.ReadWrite) { //TODO:kanske kolla om objektet är valid?
             sendResponse(permission, objectID, obj, destination);
@@ -119,7 +121,7 @@ public class DSObjectCommReceiver {
                 destination,
                 obj));
         if (permission == Permission.ReadWrite) {
-            dsObjectSpaceMap.setPermission(objectID, Permission.Read);
+            cache.setPermission(objectID, Permission.Read);
         }
     }
 }

@@ -1,16 +1,12 @@
 package se.uu.it.jdooms.communication;
 
 import mpi.*;
-import org.apache.commons.lang3.SerializationUtils;
 import org.apache.log4j.Logger;
 
 import se.uu.it.jdooms.objectspace.DSObjectBase;
-import se.uu.it.jdooms.objectspace.DSObjectBaseImpl;
 import se.uu.it.jdooms.objectspace.DSObjectSpace.Permission;
-import se.uu.it.jdooms.objectspace.DSObjectSpaceImpl;
 import se.uu.it.jdooms.objectspace.DSObjectSpaceMap;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Queue;
@@ -30,20 +26,22 @@ public class DSObjectComm implements Runnable {
     public static final int FINALIZE        = 50;
     public static final int RESERVE_OBJECT  = 60;
 
-    private static Queue<DSObjectCommMessage> queue = new ConcurrentLinkedQueue<DSObjectCommMessage>();;
+    private static Queue<DSObjectCommMessage> queue = new ConcurrentLinkedQueue<DSObjectCommMessage>();
 
     private int nodeID;
     private int clusterSize;
     private int workerCount;
     private boolean receiving;
 
-    private DSObjectSpaceMap<Integer, Object> dsObjectSpaceMap;
+    private DSObjectSpaceMap<Integer, Object> cache;
+    private DSObjectSpaceMap<Integer, Object> tmp_cache;
     private DSObjectCommSender dsObjectCommSender;
     private DSObjectCommReceiver dsObjectCommReceiver;
     private DSObjectNodeBarrier dsObjectNodeBarrier;
 
-    public DSObjectComm(String[] args, DSObjectSpaceMap<Integer, Object> dsObjectSpaceMap) {
-        this.dsObjectSpaceMap = dsObjectSpaceMap;
+    public DSObjectComm(String[] args, DSObjectSpaceMap<Integer, Object> cache, DSObjectSpaceMap<Integer, Object> tmp_cache) {
+        this.cache = cache;
+        this.tmp_cache = tmp_cache;
         try {
             MPI.Init(args);
             nodeID = MPI.COMM_WORLD.getRank();
@@ -55,7 +53,7 @@ public class DSObjectComm implements Runnable {
 
         dsObjectNodeBarrier = new DSObjectNodeBarrier(nodeID, clusterSize);
         dsObjectCommSender = new DSObjectCommSender(this);
-        dsObjectCommReceiver = new DSObjectCommReceiver(dsObjectSpaceMap, dsObjectNodeBarrier);
+        dsObjectCommReceiver = new DSObjectCommReceiver(this.cache, this.tmp_cache, dsObjectNodeBarrier);
         receiving = true;
     }
 
@@ -167,8 +165,8 @@ public class DSObjectComm implements Runnable {
             queue.offer(new DSObjectCommMessage(REQ_OBJECT_RW, objectID));
         }
         Object obj;
-        dsObjectSpaceMap.addObserver(this);
-        obj = dsObjectSpaceMap.get(objectID);
+        tmp_cache.addObserver(this);
+        obj = tmp_cache.get(objectID);
         while (!((DSObjectBase)obj).isValid()) {
             try {
                 synchronized (this) {
@@ -177,9 +175,9 @@ public class DSObjectComm implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            obj = dsObjectSpaceMap.get(objectID);
+            obj = tmp_cache.get(objectID);
         }
-        dsObjectSpaceMap.removeObserver(this);
+        tmp_cache.removeObserver(this);
         return obj;
     }
 }
