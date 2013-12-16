@@ -19,7 +19,7 @@ import java.nio.ByteBuffer;
 /**
  * Receiver class
  */
-public class DSObjectCommReceiver {
+class DSObjectCommReceiver {
     private static final Logger logger = Logger.getLogger(DSObjectCommReceiver.class);
     private DSObjectSpaceMap<Integer, Object> dsObjectSpaceMap;
     private DSObjectNodeBarrier dsObjectNodeBarrier;
@@ -32,7 +32,7 @@ public class DSObjectCommReceiver {
 
     /**
      * Receive dispatcher method
-     * @param status
+     * @param status a status object from iProbe
      */
     public void receive(Status status) {
         Request request;

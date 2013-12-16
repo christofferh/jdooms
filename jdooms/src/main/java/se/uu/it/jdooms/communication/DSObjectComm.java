@@ -26,7 +26,7 @@ public class DSObjectComm implements Runnable {
     public static final int FINALIZE        = 50;
     public static final int RESERVE_OBJECT  = 60;
 
-    private static Queue<DSObjectCommMessage> queue = new ConcurrentLinkedQueue<DSObjectCommMessage>();;
+    private static Queue<DSObjectCommMessage> queue = new ConcurrentLinkedQueue<DSObjectCommMessage>();
 
     private int nodeID;
     private int clusterSize;

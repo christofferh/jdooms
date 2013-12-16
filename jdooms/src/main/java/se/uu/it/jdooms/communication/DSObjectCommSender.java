@@ -13,7 +13,7 @@ import static se.uu.it.jdooms.communication.DSObjectComm.*;
 /**
  * Sender class
  */
-public class DSObjectCommSender {
+class DSObjectCommSender {
     private static final Logger logger = Logger.getLogger(DSObjectCommSender.class);
     private final int nodeID;
     private final int clusterSize;
@@ -26,7 +26,6 @@ public class DSObjectCommSender {
      * Sends an DSObjectCommMessage via MPI
      *
      * @param message the message to send
-     * @throws mpi.MPIException
      */
     public Request[] send(DSObjectCommMessage message) {
         Request[] requests = null;
@@ -64,7 +63,7 @@ public class DSObjectCommSender {
      * @return
      */
     private Request[] broadcast(int tag, ByteBuffer data) {
-        Request request = null;
+        Request request;
         int iter = 0;
         Request[] requests = new Request[clusterSize-1];
         for (int node = 0; node < clusterSize; node++) {
@@ -90,7 +89,7 @@ public class DSObjectCommSender {
      * @return
      */
     private Request[] send(int tag, ByteBuffer data, int destination) {
-        Request request = null;
+        Request request;
         Request[] requests = new Request[1];
         try {
             request = MPI.COMM_WORLD.iSend(data, data.capacity(), MPI.BYTE, destination, tag);
