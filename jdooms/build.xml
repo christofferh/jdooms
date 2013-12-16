@@ -257,6 +257,7 @@
       <zipfileset src="${basedir}/lib/log4j-1.2.17.jar"/>
       <zipfileset src="${basedir}/lib/commons-lang3-3.1.jar"/>
       <zipfileset src="${basedir}/lib/cloning-1.9.0.jar"/>
+      <zipfileset src="${basedir}/lib/objenesis-1.2.jar"/>
     </jar>
     <copy file="${temp.jar.path.jdooms.jar}" tofile="${artifact.temp.output.jdooms:jar}/jdooms.jar"/>
   </target>
