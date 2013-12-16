@@ -88,6 +88,10 @@
   
   <!-- Project Libraries -->
   
+  <path id="library.cloning-1.9.0.classpath">
+    <pathelement location="${basedir}/lib/cloning-1.9.0.jar"/>
+  </path>
+  
   <path id="library.commons-lang3-3.1.classpath">
     <pathelement location="${basedir}/lib/commons-lang3-3.1.jar"/>
   </path>
@@ -145,6 +149,7 @@
     <path refid="library.javassist.classpath"/>
     <path refid="library.mpi.classpath"/>
     <path refid="library.commons-lang3-3.1.classpath"/>
+    <path refid="library.cloning-1.9.0.classpath"/>
   </path>
   
   <path id="jdooms.runtime.production.module.classpath">
@@ -155,6 +160,7 @@
     <path refid="library.javassist.classpath"/>
     <path refid="library.mpi.classpath"/>
     <path refid="library.commons-lang3-3.1.classpath"/>
+    <path refid="library.cloning-1.9.0.classpath"/>
   </path>
   
   <path id="jdooms.module.classpath">
@@ -167,6 +173,7 @@
     <path refid="library.javassist.classpath"/>
     <path refid="library.mpi.classpath"/>
     <path refid="library.commons-lang3-3.1.classpath"/>
+    <path refid="library.cloning-1.9.0.classpath"/>
   </path>
   
   <path id="jdooms.runtime.module.classpath">
@@ -178,6 +185,7 @@
     <path refid="library.javassist.classpath"/>
     <path refid="library.mpi.classpath"/>
     <path refid="library.commons-lang3-3.1.classpath"/>
+    <path refid="library.cloning-1.9.0.classpath"/>
   </path>
   
   
@@ -247,6 +255,7 @@
       <zipfileset src="${basedir}/lib/javassist.jar"/>
       <zipfileset src="${basedir}/lib/log4j-1.2.17.jar"/>
       <zipfileset src="${basedir}/lib/commons-lang3-3.1.jar"/>
+      <zipfileset src="${basedir}/lib/cloning-1.9.0.jar"/>
     </jar>
     <copy file="${temp.jar.path.jdooms.jar}" tofile="${artifact.temp.output.jdooms:jar}/jdooms.jar"/>
   </target>
