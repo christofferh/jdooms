@@ -14,10 +14,11 @@ import se.uu.it.jdooms.objectspace.DSObjectSpaceMap;
 
 import static se.uu.it.jdooms.communication.DSObjectComm.*;
 
-
 import java.nio.ByteBuffer;
-import java.util.Queue;
 
+/**
+ * Receiver class
+ */
 public class DSObjectCommReceiver {
     private static final Logger logger = Logger.getLogger(DSObjectCommReceiver.class);
     private DSObjectSpaceMap<Integer, Object> dsObjectSpaceMap;
@@ -29,6 +30,10 @@ public class DSObjectCommReceiver {
         this.dsObjectNodeBarrier = dsObjectNodeBarrier;
     }
 
+    /**
+     * Receive dispatcher method
+     * @param status
+     */
     public void receive(Status status) {
         Request request;
         try {
@@ -67,6 +72,10 @@ public class DSObjectCommReceiver {
         }
     }
 
+    /**
+     * Method for reserving an object in the object space
+     * @param byteBuffer a ByteBuffer containing the objectID to reserve
+     */
     private void gotReserveObject(ByteBuffer byteBuffer) {
         int objectID = byteBuffer.getInt();
         logger.debug("Got RESERVE_OBJECT:" + objectID);
@@ -76,6 +85,10 @@ public class DSObjectCommReceiver {
         dsObjectSpaceMap.put(objectID, dsObjectBase);
     }
 
+    /**
+     * Method to load a DSClass
+     * @param byteBuffer a ByteBuffer containing the class to load
+     */
     private void gotLoadDsClass(ByteBuffer byteBuffer) {
         byte[] bytes = new byte[byteBuffer.capacity()];
         byteBuffer.get(bytes);
@@ -84,11 +97,20 @@ public class DSObjectCommReceiver {
         DSObjectSpaceImpl.loadDSClass(clazz);
     }
 
+    /**
+     * Method to add a nodeID to the barrier
+     * @param nodeID the nodeID to add to the barrier
+     */
     private void gotSynchronize(int nodeID) {
         logger.debug("Got SYNCHRONIZE from nodeID: " + nodeID);
         dsObjectNodeBarrier.add(nodeID);
     }
 
+    /**
+     * Method to store a response object in the object store
+     * @param permission the specified Permission
+     * @param byteBuffer the ByteBuffer containing the serialized object
+     */
     private void gotResponse(Permission permission, ByteBuffer byteBuffer) {
         logger.debug("Got Response");
         byte[] bytes = new byte[byteBuffer.capacity()];
@@ -104,6 +126,12 @@ public class DSObjectCommReceiver {
         dsObjectSpaceMap.put(((DSObjectBase)obj).getID(), obj);
     }
 
+    /**
+     * Method to respond to a getObject request from another node
+     * @param permission the specified Permission
+     * @param byteBuffer a ByteBuffer containing the requested objectID
+     * @param destination the ID of the requester
+     */
     private void gotRequest(Permission permission, ByteBuffer byteBuffer, int destination) {
         int objectID = byteBuffer.getInt();
         logger.debug("Got Request, objectid " + objectID);
@@ -114,6 +142,13 @@ public class DSObjectCommReceiver {
         }
     }
 
+    /**
+     * Method to send a response to a requester
+     * @param permission the specified Permission
+     * @param objectID the objectID
+     * @param obj the object to send
+     * @param destination the ID of the requester
+     */
     private void sendResponse(Permission permission, int objectID, Object obj, int destination) {
         DSObjectComm.enqueuMessage(new DSObjectCommMessage(((permission == Permission.Read) ? RES_OBJECT_R : RES_OBJECT_RW),
                 destination,

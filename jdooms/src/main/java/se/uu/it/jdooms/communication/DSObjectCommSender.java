@@ -10,6 +10,9 @@ import java.nio.ByteBuffer;
 
 import static se.uu.it.jdooms.communication.DSObjectComm.*;
 
+/**
+ * Sender class
+ */
 public class DSObjectCommSender {
     private static final Logger logger = Logger.getLogger(DSObjectCommSender.class);
     private final int nodeID;
