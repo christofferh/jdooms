@@ -13,7 +13,7 @@ public class DSObjectCommSynchronize implements Runnable {
     private final DSObjectNodeBarrier dsObjectNodeBarrier;
     private final DSObjectSpaceMap<Integer, Object> objectSpaceMap;
 
-    DSObjectCommSynchronize(DSObjectComm dsObjectComm, DSObjectSpaceMap<Integer, Object> objectSpaceMap) {
+    public DSObjectCommSynchronize(DSObjectComm dsObjectComm, DSObjectSpaceMap<Integer, Object> objectSpaceMap) {
         this.dsObjectComm = dsObjectComm;
         dsObjectNodeBarrier = dsObjectComm.getDsObjectNodeBarrier();
         this.objectSpaceMap = objectSpaceMap;
