@@ -10,6 +10,7 @@ import java.util.concurrent.CyclicBarrier;
 
 import se.uu.it.jdooms.communication.DSObjectComm;
 
+import se.uu.it.jdooms.communication.DSObjectCommFinalizer;
 import se.uu.it.jdooms.communication.DSObjectCommMessage;
 import se.uu.it.jdooms.communication.DSObjectCommSynchronize;
 
@@ -29,12 +30,14 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
 
     private final DSObjectSpaceMap<Integer, Object> objectSpaceMap;
     private final CyclicBarrier barrier;
+    private final CyclicBarrier finalizeBarrier;
     private final DSObjectComm dsObjectComm;
 
     public DSObjectSpaceImpl(String[] args) {
         objectSpaceMap = new DSObjectSpaceMap<Integer, Object>(Integer.valueOf(args[1]));
         dsObjectComm = new DSObjectComm(args, objectSpaceMap);
         barrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectCommSynchronize(dsObjectComm, objectSpaceMap));
+        finalizeBarrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectCommFinalizer(dsObjectComm, objectSpaceMap));
 
         Thread dsObjectCommThread = new Thread(dsObjectComm);
         dsObjectCommThread.start();
@@ -120,7 +123,13 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      */
     @Override
     public void dsFinalize() {
-        dsObjectComm.dsFinalize();
+        try {
+            finalizeBarrier.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
