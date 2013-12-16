@@ -19,7 +19,7 @@ public class GaussSeidelWorker implements DSObject{
 
         if(dsObjectSpace.getWorkerID() == 0) {
             float[][] matrix = generateMatrix();
-            System.out.println(printMatrix(matrix));
+            //System.out.println(printMatrix(matrix));
 
             int workerCount =  dsObjectSpace.getWorkerCount();
             if ((matrix.length/workerCount) < 2) {
@@ -93,9 +93,9 @@ public class GaussSeidelWorker implements DSObject{
         final long endTimeCalculate = System.currentTimeMillis();
 
         if(dsObjectSpace.getWorkerID() == 0) {
-            for (int i = 0; i < dsObjectSpace.getWorkerCount(); i++) {
+            /*for (int i = 0; i < dsObjectSpace.getWorkerCount(); i++) {
                 System.out.print(dsObjectSpace.getObject(i, DSObjectSpace.Permission.Read));
-            }
+            }*/
             System.out.println("Performance");
             System.out.println("Startup time: " + (endTimeInit - startTimeInit));
             System.out.println("Calculation time: " + (endTimeCalculate - startTimeCalculate));
@@ -115,8 +115,8 @@ public class GaussSeidelWorker implements DSObject{
     }
 
     private float[][] generateMatrix() {
-        Random rnd = new Random();
-        int l = 8;
+        //Random rnd = new Random();
+        int l = 64;
         float[][] tmp = new float[l][l];
         int n = 0;
         for (int i = 0; i < tmp.length; i++) {
