@@ -61,23 +61,23 @@
   <property name="jdk.bin.1.6" value="${jdk.home.1.6}/bin"/>
   <path id="jdk.classpath.1.6">
     <fileset dir="${jdk.home.1.6}">
-      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/deploy.jar"/>
-      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/dt.jar"/>
-      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/javaws.jar"/>
-      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/jce.jar"/>
-      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/jconsole.jar"/>
-      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/management-agent.jar"/>
-      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/plugin.jar"/>
-      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/sa-jdi.jar"/>
+      <include name="lib/deploy.jar"/>
+      <include name="lib/dt.jar"/>
+      <include name="lib/javaws.jar"/>
+      <include name="lib/jce.jar"/>
+      <include name="lib/jconsole.jar"/>
+      <include name="lib/management-agent.jar"/>
+      <include name="lib/plugin.jar"/>
+      <include name="lib/sa-jdi.jar"/>
       <include name="../Classes/charsets.jar"/>
       <include name="../Classes/classes.jar"/>
       <include name="../Classes/jsse.jar"/>
       <include name="../Classes/ui.jar"/>
-      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/ext/apple_provider.jar"/>
-      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/ext/dnsns.jar"/>
-      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/ext/localedata.jar"/>
-      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/ext/sunjce_provider.jar"/>
-      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/ext/sunpkcs11.jar"/>
+      <include name="lib/ext/apple_provider.jar"/>
+      <include name="lib/ext/dnsns.jar"/>
+      <include name="lib/ext/localedata.jar"/>
+      <include name="lib/ext/sunjce_provider.jar"/>
+      <include name="lib/ext/sunpkcs11.jar"/>
     </fileset>
   </path>
   
@@ -87,10 +87,6 @@
   
   
   <!-- Project Libraries -->
-  
-  <path id="library.cloning-1.9.0.classpath">
-    <pathelement location="${basedir}/lib/cloning-1.9.0.jar"/>
-  </path>
   
   <path id="library.commons-lang3-3.1.classpath">
     <pathelement location="${basedir}/lib/commons-lang3-3.1.jar"/>
@@ -118,6 +114,11 @@
   
   <path id="library.mpi.classpath">
     <pathelement location="${basedir}/lib/mpi.jar"/>
+  </path>
+  
+  <path id="library.uk.com.robust-it:cloning:1.9.0.classpath">
+    <pathelement location="${basedir}/lib/cloning-1.9.0.jar"/>
+    <pathelement location="${basedir}/lib/objenesis-1.2.jar"/>
   </path>
   
   <!-- Modules -->
@@ -149,7 +150,7 @@
     <path refid="library.javassist.classpath"/>
     <path refid="library.mpi.classpath"/>
     <path refid="library.commons-lang3-3.1.classpath"/>
-    <path refid="library.cloning-1.9.0.classpath"/>
+    <path refid="library.uk.com.robust-it:cloning:1.9.0.classpath"/>
   </path>
   
   <path id="jdooms.runtime.production.module.classpath">
@@ -160,7 +161,7 @@
     <path refid="library.javassist.classpath"/>
     <path refid="library.mpi.classpath"/>
     <path refid="library.commons-lang3-3.1.classpath"/>
-    <path refid="library.cloning-1.9.0.classpath"/>
+    <path refid="library.uk.com.robust-it:cloning:1.9.0.classpath"/>
   </path>
   
   <path id="jdooms.module.classpath">
@@ -173,7 +174,7 @@
     <path refid="library.javassist.classpath"/>
     <path refid="library.mpi.classpath"/>
     <path refid="library.commons-lang3-3.1.classpath"/>
-    <path refid="library.cloning-1.9.0.classpath"/>
+    <path refid="library.uk.com.robust-it:cloning:1.9.0.classpath"/>
   </path>
   
   <path id="jdooms.runtime.module.classpath">
@@ -185,7 +186,7 @@
     <path refid="library.javassist.classpath"/>
     <path refid="library.mpi.classpath"/>
     <path refid="library.commons-lang3-3.1.classpath"/>
-    <path refid="library.cloning-1.9.0.classpath"/>
+    <path refid="library.uk.com.robust-it:cloning:1.9.0.classpath"/>
   </path>
   
   

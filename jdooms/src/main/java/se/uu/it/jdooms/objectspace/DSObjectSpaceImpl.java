@@ -39,7 +39,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         tmp_cache = new DSObjectSpaceMap<Integer, Object>(Integer.valueOf(args[1]));
         dsObjectComm = new DSObjectComm(args, cache, tmp_cache);
         barrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectCommSynchronize(dsObjectComm, cache, tmp_cache));
-        finalizeBarrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectCommFinalizer(dsObjectComm, cache));
+        finalizeBarrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectCommFinalizer(dsObjectComm, cache, tmp_cache));
 
         Thread dsObjectCommThread = new Thread(dsObjectComm);
         dsObjectCommThread.start();

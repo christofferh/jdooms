@@ -22,7 +22,7 @@
     <orderEntry type="library" name="javassist" level="project" />
     <orderEntry type="library" name="mpi" level="project" />
     <orderEntry type="library" name="commons-lang3-3.1" level="project" />
-    <orderEntry type="library" name="cloning-1.9.0" level="project" />
+    <orderEntry type="library" name="uk.com.robust-it:cloning:1.9.0" level="project" />
   </component>
 </module>
 

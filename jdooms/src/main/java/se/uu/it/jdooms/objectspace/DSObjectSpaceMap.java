@@ -1,5 +1,6 @@
 package se.uu.it.jdooms.objectspace;
 
+import com.rits.cloning.Cloner;
 import org.apache.log4j.Logger;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,10 +14,12 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
     private static final Logger logger = Logger.getLogger(DSObjectSpaceMap.class);
     private AtomicReferenceArray<Object> observers;
+    private final Cloner cloner;
     private int nodeWorkerCount;
 
     public DSObjectSpaceMap(int nodeWorkerCount) {
         super();
+        this.cloner = new Cloner();
         this.nodeWorkerCount = nodeWorkerCount;
         observers = new AtomicReferenceArray<Object>(nodeWorkerCount);
     }
@@ -93,6 +96,10 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
     }
 
     public void clone(DSObjectSpaceMap<K, V> map) {
+        map.clear();
+        for (Entry<K, V> entry : map.entrySet()) {
+            map.put(cloner.deepClone(entry.getKey()), cloner.deepClone(entry.getValue()));
+        }
 
     }
 }
