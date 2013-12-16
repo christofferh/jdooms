@@ -4,25 +4,25 @@ import org.apache.log4j.Logger;
 import se.uu.it.jdooms.objectspace.DSObjectSpaceMap;
 
 /**
- * Last worker on the node sends a synchronization messsage to the cluster and waits
+ * Last worker on the node sends a synchronization message to the cluster and waits
  * for the other nodes to synchronize
  */
 public class DSObjectCommSynchronize implements Runnable {
     private static final Logger logger = Logger.getLogger(DSObjectCommSynchronize.class);
-    private final DSObjectComm DSObjectComm;
-    private final DSObjectNodeBarrier DSObjectNodeBarrier;
+    protected final DSObjectComm dsObjectComm;
+    private final DSObjectNodeBarrier dsObjectNodeBarrier;
     private final DSObjectSpaceMap<Integer, Object> objectSpaceMap;
 
-    public DSObjectCommSynchronize(DSObjectComm DSObjectComm, DSObjectSpaceMap<Integer, Object> objectSpaceMap) {
-        this.DSObjectComm = DSObjectComm;
-        DSObjectNodeBarrier = DSObjectComm.getDsObjectNodeBarrier();
+    DSObjectCommSynchronize(DSObjectComm dsObjectComm, DSObjectSpaceMap<Integer, Object> objectSpaceMap) {
+        this.dsObjectComm = dsObjectComm;
+        dsObjectNodeBarrier = dsObjectComm.getDsObjectNodeBarrier();
         this.objectSpaceMap = objectSpaceMap;
     }
 
     @Override
     public void run() {
-        DSObjectComm.synchronize();
-        if (DSObjectNodeBarrier.barrier(this)) {
+        dsObjectComm.synchronize();
+        if (dsObjectNodeBarrier.barrier(this)) {
             try {
                 synchronized (this) {
                     this.wait();

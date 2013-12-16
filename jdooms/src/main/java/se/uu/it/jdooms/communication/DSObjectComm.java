@@ -89,50 +89,7 @@ public class DSObjectComm implements Runnable {
         return dsObjectNodeBarrier;
     }
     /**
-     * Start the communication
-     */
-    @Override
-    public void run() {
-        Thread.currentThread().setName("COMM-" + nodeID);
-        DSObjectCommMessage message;
-        Status status;
-        ArrayList<Request> requests = new ArrayList<Request>();
-
-        while (receiving) {
-            message = queue.poll();
-            if (message != null) {
-                Collections.addAll(requests, dsObjectCommSender.send(message));
-            }
-            try {
-                status = MPI.COMM_WORLD.iProbe(MPI.ANY_SOURCE, MPI.ANY_TAG);
-                if (status != null) {
-                    dsObjectCommReceiver.receive(status);
-                }
-            } catch (MPIException e) {
-                e.printStackTrace();
-            }
-
-            if (requests.size() != 0) { //if the cluster size is 1 request will be null since it wont be sent anywhere
-                for (int i = 0; i < requests.size(); i++) {
-                    try {
-                        if (requests.get(i).test()) {
-                            requests.remove(i);
-                        }
-                    } catch (MPIException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-        try {
-            MPI.Finalize();
-        } catch (MPIException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Puts a synchronize message on the queue and self-invalidates its local cache
+     * Puts a synchronize message on the queue
      */
     public void synchronize() {
         queue.offer(new DSObjectCommMessage(SYNCHRONIZE));
@@ -142,7 +99,6 @@ public class DSObjectComm implements Runnable {
      * Puts a dsFinalize message on the queue
      */
     public void dsFinalize() {
-        synchronize();
         receiving = false;
     }
 
@@ -180,6 +136,52 @@ public class DSObjectComm implements Runnable {
         tmp_cache.removeObserver(this);
         return obj;
     }
+
+    /**
+     * Start the communication
+     */
+    @Override
+    public void run() {
+        Thread.currentThread().setName("COMM-" + nodeID);
+        DSObjectCommMessage message;
+        Status status;
+        ArrayList<Request> requests = new ArrayList<Request>();
+
+        while (receiving) {
+            message = queue.poll();
+            if (message != null) {
+                Collections.addAll(requests, dsObjectCommSender.send(message));
+            }
+            try {
+                status = MPI.COMM_WORLD.iProbe(MPI.ANY_SOURCE, MPI.ANY_TAG);
+                if (status != null) {
+                    dsObjectCommReceiver.receive(status);
+                }
+            } catch (MPIException e) {
+                e.printStackTrace();
+            }
+
+            if (requests.size() != 0) { //if the cluster size is 1 request will be null since it wont be sent anywhere
+                for (int i = 0; i < requests.size(); i++) {
+                    try {
+                        if (requests.get(i).test()) {
+                            requests.remove(i);
+                        }
+                    } catch (MPIException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        try {
+            MPI.Finalize();
+        } catch (MPIException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }
 
 

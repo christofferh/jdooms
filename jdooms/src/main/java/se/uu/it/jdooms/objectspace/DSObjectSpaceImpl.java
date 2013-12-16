@@ -10,6 +10,7 @@ import java.util.concurrent.CyclicBarrier;
 
 import se.uu.it.jdooms.communication.DSObjectComm;
 
+import se.uu.it.jdooms.communication.DSObjectCommFinalizer;
 import se.uu.it.jdooms.communication.DSObjectCommMessage;
 import se.uu.it.jdooms.communication.DSObjectCommSynchronize;
 
@@ -30,6 +31,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     private final DSObjectSpaceMap<Integer, Object> cache;
     private final DSObjectSpaceMap<Integer, Object> tmp_cache;
     private final CyclicBarrier barrier;
+    private final CyclicBarrier finalizeBarrier;
     private final DSObjectComm dsObjectComm;
 
     public DSObjectSpaceImpl(String[] args) {
@@ -37,6 +39,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         tmp_cache = new DSObjectSpaceMap<Integer, Object>(Integer.valueOf(args[1]));
         dsObjectComm = new DSObjectComm(args, cache, tmp_cache);
         barrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectCommSynchronize(dsObjectComm, cache));
+        finalizeBarrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectCommFinalizer(dsObjectComm, cache));
 
         Thread dsObjectCommThread = new Thread(dsObjectComm);
         dsObjectCommThread.start();
@@ -125,7 +128,13 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      */
     @Override
     public void dsFinalize() {
-        dsObjectComm.dsFinalize();
+        try {
+            finalizeBarrier.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
