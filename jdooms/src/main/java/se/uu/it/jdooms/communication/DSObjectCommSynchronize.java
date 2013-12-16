@@ -21,8 +21,7 @@ public class DSObjectCommSynchronize implements Runnable {
         this.tmp_cache = tmp_cache;
     }
 
-    @Override
-    public void run() {
+    private void synchronize() {
         dsObjectComm.synchronize();
         if (dsObjectNodeBarrier.barrier(this)) {
             try {
@@ -33,9 +32,17 @@ public class DSObjectCommSynchronize implements Runnable {
                 e.printStackTrace();
             }
         }
-        logger.debug("cloning tmp into cache");
+    }
+
+    @Override
+    public void run() {
+        synchronize();
+
+        logger.debug("Cloning tmp_cache into cache");
         tmp_cache.clone(cache);
         tmp_cache.selfInvalidate();
+
+        synchronize();
         logger.debug("Worker passed barrier");
     }
 }
