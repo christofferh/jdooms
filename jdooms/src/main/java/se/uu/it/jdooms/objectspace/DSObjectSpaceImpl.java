@@ -133,7 +133,9 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     @Override
     public Object dsNew(String clazz, int objectID) throws IllegalAccessException, InstantiationException {
         /* Make sure the ds class is loaded before trying to get it */
-        loadDSClass(clazz);
+        if (loadDSClass(clazz)) {
+            DSObjectComm.enqueueloadDSClass(clazz);
+        }
         Object obj = objectSpaceMap.get(objectID);
         if (obj != null && ((DSObjectBase) obj).isValid() ) {
             logger.debug("Fetched object from local cache");
@@ -161,7 +163,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      * Loads a specified DSClass in the class loader
      * @param clazz fully qualified name of the class to load
      */
-    public static void loadDSClass(String clazz) {
+    public static boolean loadDSClass(String clazz) {
         Method findLoadedClass;
         try {
             findLoadedClass = ClassLoader.class.getDeclaredMethod(CLASSLOADER_METHOD, new Class[] { String.class });
@@ -169,7 +171,6 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
             ClassLoader cl = DSObjectSpaceImpl.class.getClassLoader();
             Class dsClazz = (Class) findLoadedClass.invoke(cl, clazz);
             if (dsClazz == null) {
-                DSObjectComm.enqueueloadDSClass(clazz);
                 ClassPool classPool = ClassPool.getDefault();
                 try {
                     classPool.appendClassPath(USER_DIR + JDOOMS_BIN_DIR);
@@ -188,6 +189,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
                 } catch (NotFoundException e) {
                     e.printStackTrace();
                 }
+                return true;
             }
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
@@ -196,5 +198,6 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
+        return false;
     }
 }
