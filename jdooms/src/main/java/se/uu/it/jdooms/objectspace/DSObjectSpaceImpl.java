@@ -38,7 +38,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         cache = new DSObjectSpaceMap<Integer, Object>(Integer.valueOf(args[1]));
         tmp_cache = new DSObjectSpaceMap<Integer, Object>(Integer.valueOf(args[1]));
         dsObjectComm = new DSObjectComm(args, cache, tmp_cache);
-        barrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectCommSynchronize(dsObjectComm, cache));
+        barrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectCommSynchronize(dsObjectComm, cache, tmp_cache));
         finalizeBarrier = new CyclicBarrier(Integer.valueOf(args[1]), new DSObjectCommFinalizer(dsObjectComm, cache));
 
         Thread dsObjectCommThread = new Thread(dsObjectComm);
@@ -87,7 +87,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     @Override
     public void putObject(Object obj) {
         if (obj != null) {
-            cache.put(((DSObjectBase) obj).getID(), obj);
+            tmp_cache.put(((DSObjectBase) obj).getID(), obj);
         }
     }
 
@@ -151,7 +151,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
         if (loadDSClass(clazz)) {
             DSObjectComm.enqueuMessage(new DSObjectCommMessage(LOAD_DSCLASS, clazz));
         }
-        Object obj = cache.get(objectID);
+        Object obj = tmp_cache.get(objectID);
         if (obj != null && ((DSObjectBase) obj).isValid() ) {
             logger.debug("Fetched object from local cache");
             return obj;

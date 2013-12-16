@@ -11,12 +11,14 @@ public class DSObjectCommSynchronize implements Runnable {
     private static final Logger logger = Logger.getLogger(DSObjectCommSynchronize.class);
     protected final DSObjectComm dsObjectComm;
     private final DSObjectNodeBarrier dsObjectNodeBarrier;
-    private final DSObjectSpaceMap<Integer, Object> objectSpaceMap;
+    private final DSObjectSpaceMap<Integer, Object> cache;
+    private final DSObjectSpaceMap<Integer, Object> tmp_cache;
 
-    public DSObjectCommSynchronize(DSObjectComm dsObjectComm, DSObjectSpaceMap<Integer, Object> objectSpaceMap) {
+    public DSObjectCommSynchronize(DSObjectComm dsObjectComm, DSObjectSpaceMap<Integer, Object> cache, DSObjectSpaceMap<Integer, Object> tmp_cache) {
         this.dsObjectComm = dsObjectComm;
         dsObjectNodeBarrier = dsObjectComm.getDsObjectNodeBarrier();
-        this.objectSpaceMap = objectSpaceMap;
+        this.cache = cache;
+        this.tmp_cache = tmp_cache;
     }
 
     @Override
@@ -31,7 +33,8 @@ public class DSObjectCommSynchronize implements Runnable {
                 e.printStackTrace();
             }
         }
-        objectSpaceMap.selfInvalidate();
+        tmp_cache.clone(cache);
+        cache.selfInvalidate();
         logger.debug("Worker passed barrier");
     }
 }

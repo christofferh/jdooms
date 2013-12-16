@@ -85,7 +85,7 @@ class DSObjectCommReceiver {
         DSObjectBaseImpl dsObjectBase = new DSObjectBaseImpl();
         dsObjectBase.setPermission(Permission.Read);
         dsObjectBase.setValid(false);
-        cache.put(objectID, dsObjectBase);
+        tmp_cache.put(objectID, dsObjectBase);
     }
 
     /**
@@ -157,7 +157,7 @@ class DSObjectCommReceiver {
                 destination,
                 obj));
         if (permission == Permission.ReadWrite) {
-            cache.setPermission(objectID, Permission.Read);
+            tmp_cache.setPermission(objectID, Permission.Read);
         }
     }
 }

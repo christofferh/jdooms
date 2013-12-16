@@ -91,4 +91,8 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
             ((DSObjectBase)obj).setPermission(permission);
         }
     }
+
+    public void clone(DSObjectSpaceMap<K, V> map) {
+
+    }
 }
