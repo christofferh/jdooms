@@ -52,9 +52,6 @@ public class DSObjectCommSender {
             case SYNCHRONIZE:
                 requests = broadcast(SYNCHRONIZE, message.data);
                 break;
-            case FINALIZE:
-                requests = broadcast(FINALIZE, message.data);
-                break;
             default:
         }
         return requests;
