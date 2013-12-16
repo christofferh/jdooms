@@ -137,8 +137,16 @@ class DSObjectCommReceiver {
      */
     private void gotRequest(Permission permission, ByteBuffer byteBuffer, int destination) {
         int objectID = byteBuffer.getInt();
-        logger.debug("Got Request, objectid " + objectID);
+        logger.debug("Got Request, objectid " + objectID + " permission: " + permission);
         Object obj = cache.get(objectID);
+
+        if (obj != null) {
+            System.out.println("object is not null");
+            //logger.debug("object permission: " + ((DSObjectBase)obj).getPermission());
+            //logger.debug("object valid: " + ((DSObjectBase)obj).isValid());
+        } else {
+            System.out.println("object was null");
+        }
 
         if (obj != null && ((DSObjectBase)obj).getPermission() == Permission.ReadWrite) { //TODO:kanske kolla om objektet är valid?
             sendResponse(permission, objectID, obj, destination);

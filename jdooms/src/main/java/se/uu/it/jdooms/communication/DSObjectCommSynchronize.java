@@ -33,8 +33,9 @@ public class DSObjectCommSynchronize implements Runnable {
                 e.printStackTrace();
             }
         }
+        logger.debug("cloning tmp into cache");
         tmp_cache.clone(cache);
-        cache.selfInvalidate();
+        tmp_cache.selfInvalidate();
         logger.debug("Worker passed barrier");
     }
 }

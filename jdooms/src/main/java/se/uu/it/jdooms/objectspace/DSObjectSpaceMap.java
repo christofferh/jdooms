@@ -97,7 +97,7 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
 
     public void clone(DSObjectSpaceMap<K, V> map) {
         map.clear();
-        for (Entry<K, V> entry : map.entrySet()) {
+        for (Entry<K, V> entry : super.entrySet()) {
             map.put(cloner.deepClone(entry.getKey()), cloner.deepClone(entry.getValue()));
         }
 
