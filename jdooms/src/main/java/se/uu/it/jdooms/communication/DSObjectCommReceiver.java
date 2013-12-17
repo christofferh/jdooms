@@ -120,13 +120,17 @@ class DSObjectCommReceiver {
         byteBuffer.get(bytes);
         Object obj = SerializationUtils.deserialize(bytes);
 
-        if (permission == Permission.Read) {
-            ((DSObjectBase)obj).setPermission(Permission.Read);
-        } else {
-            ((DSObjectBase)obj).setPermission(Permission.ReadWrite);
+
+        Object cacheObj = tmp_cache.get(((DSObjectBase)obj).getID());
+        if (((DSObjectBase)cacheObj).getPermission() != Permission.ReadWrite) {
+            if (permission == Permission.Read) {
+                ((DSObjectBase)obj).setPermission(Permission.Read);
+            } else {
+                ((DSObjectBase)obj).setPermission(Permission.ReadWrite);
+            }
+            ((DSObjectBase)obj).setValid(true);
+            tmp_cache.put(((DSObjectBase) obj).getID(), obj);
         }
-        ((DSObjectBase)obj).setValid(true);
-        tmp_cache.put(((DSObjectBase) obj).getID(), obj);
     }
 
     /**
