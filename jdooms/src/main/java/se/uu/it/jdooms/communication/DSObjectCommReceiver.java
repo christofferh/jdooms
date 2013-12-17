@@ -44,7 +44,7 @@ class DSObjectCommReceiver {
             int count = status.getCount(MPI.BYTE);
             int sender = status.getSource();
             ByteBuffer byteBuffer = ByteBuffer.allocateDirect(count);
-            request = MPI.COMM_WORLD.iRecv(byteBuffer, count, MPI.BYTE, status.getSource(), status.getTag());
+            request = MPI.COMM_WORLD.iRecv(byteBuffer, count, MPI.BYTE, sender, tag);
             request.waitFor();
             switch (tag) {
                 case RES_OBJECT_R:
