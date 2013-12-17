@@ -11,7 +11,7 @@ public class DSObjectCommFinalizer extends DSObjectCommSynchronize {
 
     @Override
     public void run() {
-        super.run();
+        synchronize();
         logger.debug("Finalized");
         dsObjectComm.dsFinalize();
     }
