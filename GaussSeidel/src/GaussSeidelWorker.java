@@ -2,14 +2,14 @@ import se.uu.it.jdooms.objectspace.DSObjectSpace;
 import se.uu.it.jdooms.workerdispatcher.DSObject;
 
 import java.util.Arrays;
-import java.util.Random;
 
 public class GaussSeidelWorker implements DSObject{
     DSObjectSpace dsObjectSpace;
+    int matrixSize = 32;
 
     @Override
-    public void Init(DSObjectSpace dsObjectSpace) {
-        //To change body of implemented methods use File | Settings | File Templates.
+    public void Init(String[] args, DSObjectSpace dsObjectSpace) {
+        matrixSize = Integer.parseInt(args[2]);
         this.dsObjectSpace = dsObjectSpace;
     }
 
@@ -115,12 +115,12 @@ public class GaussSeidelWorker implements DSObject{
     }
 
     private float[][] generateMatrix() {
-        int l = 64;
-        float[][] tmp = new float[l][l];
+        //int l = 64;
+        float[][] tmp = new float[matrixSize][matrixSize];
         int n = 0;
         for (int i = 0; i < tmp.length; i++) {
             for (int j = 0; j < tmp[i].length; j++) {
-                tmp[i][j] = n%l;
+                tmp[i][j] = n%matrixSize;
                 n++;
             }
             n++;

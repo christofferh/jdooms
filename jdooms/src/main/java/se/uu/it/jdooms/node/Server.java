@@ -10,7 +10,7 @@ import se.uu.it.jdooms.workerdispatcher.DSObjectDispatcher;
 public class Server {
     private final DSObjectDispatcher dsObjectDispatcher;
     private final DSObjectSpaceImpl dsObjectSpace;
-    private static String className;
+    private String[] args;
     private static final Logger logger = Logger.getLogger(Server.class);
 
 	/**
@@ -18,7 +18,6 @@ public class Server {
 	 * @param args contains MPI parameters and Worker class
 	 */
 	public static void main(String[] args)   {
-        className = args[0];
         Server server = new Server(args);
         server.start();
 	}
@@ -27,7 +26,8 @@ public class Server {
      * JDOOMS server constructor
      * @param args program arguments
      */
-    private Server(String[] args){
+    private Server(String[] args) {
+        this.args = args;
         dsObjectSpace = new DSObjectSpaceImpl(args);
         dsObjectDispatcher = new DSObjectDispatcher(dsObjectSpace);
     }
@@ -38,9 +38,9 @@ public class Server {
     private void start(){
         if (dsObjectSpace.getNodeID() == 0)
         {
-            dsObjectDispatcher.startWorkers(className);
+            dsObjectDispatcher.startWorkers(args);
         } else {
-            dsObjectDispatcher.startWorkers(className);
+            dsObjectDispatcher.startWorkers(args);
         }
     }
 }

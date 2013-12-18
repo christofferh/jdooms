@@ -10,9 +10,10 @@ ifndef JAVA_HOME
 $(error JAVA_HOME is not set)
 endif
 
-NP = 1
-THREADS = 2
+NP=1
+THREADS=2
 MEMORY=1024
+MATRIX_SIZE=32
 
 all: compile
 
@@ -24,7 +25,7 @@ clean:
 	rm -fr out
 
 run:
-	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -Xmx$(MEMORY)m -cp .:out/:../jdooms/classes/artifacts/jdooms_jar/jdooms.jar se.uu.it.jdooms.node.Server GaussSeidelWorker $(THREADS)
+	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -Xmx$(MEMORY)m -cp .:out/:../jdooms/classes/artifacts/jdooms_jar/jdooms.jar se.uu.it.jdooms.node.Server GaussSeidelWorker $(THREADS) $(MATRIX_SIZE)
 
 shit:
 	$(info dump..)

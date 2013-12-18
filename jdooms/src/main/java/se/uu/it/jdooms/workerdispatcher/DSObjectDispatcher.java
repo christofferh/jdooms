@@ -20,13 +20,15 @@ public class DSObjectDispatcher {
 
     /**
      * Creates an instance of a DSObject and creates threads for every available processor
-     * @param className Fully qualified name of a class implementing DSObject
+     * @param args args array, first element has to be the fully qualified name of a class implementing DSObject
      */
-    public void startWorkers(String className) {
+    public void startWorkers(String[] args) {
+        String className;
         DSObject worker;
         try {
+            className = args[0];
             worker = instantiate(className, DSObject.class);
-            worker.Init(dsObjectSpace);
+            worker.Init(args, dsObjectSpace);
             for (int i = beginWorkerID; i < beginWorkerID + workersPerNode; i++)
             {
                 String workerID = Integer.toString(i);
