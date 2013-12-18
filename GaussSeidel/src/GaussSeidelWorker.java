@@ -55,7 +55,7 @@ public class GaussSeidelWorker implements DSObject{
         final long startTimeCalculate = System.currentTimeMillis();
         int workerID = dsObjectSpace.getWorkerID();
 
-        for (int tolerance = 0; tolerance < 1; tolerance++){ // while the tolerance criteria is not met
+        for (int tolerance = 0; tolerance < 5; tolerance++){ // while the tolerance criteria is not met
             try {
                 Matrix id = (Matrix) dsObjectSpace.getObject(workerID, DSObjectSpace.Permission.ReadWrite);
                 Matrix left = null;
