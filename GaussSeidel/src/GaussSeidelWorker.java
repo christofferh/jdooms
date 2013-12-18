@@ -2,14 +2,14 @@ import se.uu.it.jdooms.objectspace.DSObjectSpace;
 import se.uu.it.jdooms.workerdispatcher.DSObject;
 
 import java.util.Arrays;
-import java.util.Random;
 
 public class GaussSeidelWorker implements DSObject{
     DSObjectSpace dsObjectSpace;
+    int matrixSize = 32;
 
     @Override
-    public void Init(DSObjectSpace dsObjectSpace) {
-        //To change body of implemented methods use File | Settings | File Templates.
+    public void Init(String[] args, DSObjectSpace dsObjectSpace) {
+        matrixSize = Integer.parseInt(args[2]);
         this.dsObjectSpace = dsObjectSpace;
     }
 
@@ -19,7 +19,6 @@ public class GaussSeidelWorker implements DSObject{
 
         if(dsObjectSpace.getWorkerID() == 0) {
             float[][] matrix = generateMatrix();
-            //System.out.println(printMatrix(matrix));
 
             int workerCount =  dsObjectSpace.getWorkerCount();
             if ((matrix.length/workerCount) < 2) {
@@ -27,8 +26,7 @@ public class GaussSeidelWorker implements DSObject{
                 System.exit(-1);
             }
 
-            System.out.println("Workercount: " + workerCount);
-
+            //System.out.println("Nodes: " + dsObjectSpace.getNodeCount() + " Threads: " + workerCount + " Matrix: " + matrixSize);
 
             int matrixLength = matrix.length;
             int[] distribution = new int[workerCount];
@@ -57,7 +55,7 @@ public class GaussSeidelWorker implements DSObject{
         final long startTimeCalculate = System.currentTimeMillis();
         int workerID = dsObjectSpace.getWorkerID();
 
-        for (int tolerance = 0; tolerance < 1; tolerance++){ // while the tolerance criteria is not met
+        for (int tolerance = 0; tolerance < 5; tolerance++){ // while the tolerance criteria is not met
             try {
                 Matrix id = (Matrix) dsObjectSpace.getObject(workerID, DSObjectSpace.Permission.ReadWrite);
                 Matrix left = null;
@@ -98,9 +96,10 @@ public class GaussSeidelWorker implements DSObject{
             /*for (int i = 0; i < dsObjectSpace.getWorkerCount(); i++) {
                 System.out.print(dsObjectSpace.getObject(i, DSObjectSpace.Permission.Read));
             }*/
-            System.out.println("Performance");
-            System.out.println("Startup time: " + (endTimeInit - startTimeInit));
-            System.out.println("Calculation time: " + (endTimeCalculate - startTimeCalculate));
+            //System.out.println("Startup time: " + (endTimeInit - startTimeInit));
+            //System.out.println("Calculation time: " + (endTimeCalculate - startTimeCalculate));
+            System.out.println(dsObjectSpace.getNodeCount() + "," + dsObjectSpace.getWorkerCount() + "," + matrixSize
+                               + "," + (endTimeInit - startTimeInit) + "," + (endTimeCalculate - startTimeCalculate));
         }
         dsObjectSpace.dsFinalize();
     }
@@ -117,12 +116,12 @@ public class GaussSeidelWorker implements DSObject{
     }
 
     private float[][] generateMatrix() {
-        int l = 64;
-        float[][] tmp = new float[l][l];
+        //int l = 64;
+        float[][] tmp = new float[matrixSize][matrixSize];
         int n = 0;
         for (int i = 0; i < tmp.length; i++) {
             for (int j = 0; j < tmp[i].length; j++) {
-                tmp[i][j] = n%l;
+                tmp[i][j] = n%matrixSize;
                 n++;
             }
             n++;

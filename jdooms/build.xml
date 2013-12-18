@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <project name="jdooms" default="all">
-  
-  
+
+<property environment="env"/>
   <property file="build.properties"/>
   <!-- Uncomment the following property if no tests compilation is needed -->
   <!-- 
@@ -61,23 +62,23 @@
   <property name="jdk.bin.1.6" value="${jdk.home.1.6}/bin"/>
   <path id="jdk.classpath.1.6">
     <fileset dir="${jdk.home.1.6}">
-      <include name="lib/deploy.jar"/>
-      <include name="lib/dt.jar"/>
-      <include name="lib/javaws.jar"/>
-      <include name="lib/jce.jar"/>
-      <include name="lib/jconsole.jar"/>
-      <include name="lib/management-agent.jar"/>
-      <include name="lib/plugin.jar"/>
-      <include name="lib/sa-jdi.jar"/>
+      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/deploy.jar"/>
+      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/dt.jar"/>
+      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/javaws.jar"/>
+      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/jce.jar"/>
+      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/jconsole.jar"/>
+      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/management-agent.jar"/>
+      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/plugin.jar"/>
+      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/sa-jdi.jar"/>
       <include name="../Classes/charsets.jar"/>
       <include name="../Classes/classes.jar"/>
       <include name="../Classes/jsse.jar"/>
       <include name="../Classes/ui.jar"/>
-      <include name="lib/ext/apple_provider.jar"/>
-      <include name="lib/ext/dnsns.jar"/>
-      <include name="lib/ext/localedata.jar"/>
-      <include name="lib/ext/sunjce_provider.jar"/>
-      <include name="lib/ext/sunpkcs11.jar"/>
+      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/ext/apple_provider.jar"/>
+      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/ext/dnsns.jar"/>
+      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/ext/localedata.jar"/>
+      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/ext/sunjce_provider.jar"/>
+      <include name="../../../../../Frameworks/JavaVM.framework/Home/lib/ext/sunpkcs11.jar"/>
     </fileset>
   </path>
   
@@ -242,9 +243,26 @@
   
   <target name="init.artifacts">
     <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
+    <property name="artifact.output.jdooms-bench" value="${basedir}/classes/artifacts/jdooms_bench"/>
     <property name="artifact.output.jdooms:jar" value="${basedir}/classes/artifacts/jdooms_jar"/>
     <mkdir dir="${artifacts.temp.dir}"/>
+    <property name="temp.jar.path.jdooms-bench.jar" value="${artifacts.temp.dir}/jdooms-bench.jar"/>
     <property name="temp.jar.path.jdooms.jar" value="${artifacts.temp.dir}/jdooms.jar"/>
+  </target>
+  
+  <target name="artifact.jdooms-bench" depends="init.artifacts, compile.module.jdooms" description="Build &#39;jdooms-bench&#39; artifact">
+    <property name="artifact.temp.output.jdooms-bench" value="${artifacts.temp.dir}/jdooms_bench"/>
+    <mkdir dir="${artifact.temp.output.jdooms-bench}"/>
+    <jar destfile="${temp.jar.path.jdooms-bench.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+      <zipfileset src="${basedir}/lib/cloning-1.9.0.jar"/>
+      <zipfileset src="${basedir}/lib/commons-lang3-3.1.jar"/>
+      <zipfileset src="${basedir}/lib/javassist.jar"/>
+      <zipfileset src="${basedir}/lib/log4j-1.2.17.jar"/>
+      <zipfileset src="${basedir}/lib/objenesis-1.2.jar"/>
+      <zipfileset dir="${jdooms.output.dir}"/>
+      <zipfileset file="${basedir}/src/main/config/log4j.properties"/>
+    </jar>
+    <copy file="${temp.jar.path.jdooms-bench.jar}" tofile="${artifact.temp.output.jdooms-bench}/jdooms-bench.jar"/>
   </target>
   
   <target name="artifact.jdooms:jar" depends="init.artifacts, compile.module.jdooms" description="Build &#39;jdooms:jar&#39; artifact">
@@ -252,17 +270,21 @@
     <mkdir dir="${artifact.temp.output.jdooms:jar}"/>
     <jar destfile="${temp.jar.path.jdooms.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${jdooms.output.dir}"/>
-      <zipfileset file="${basedir}/src/main/config/log4j.properties"/>
       <zipfileset src="${basedir}/lib/javassist.jar"/>
       <zipfileset src="${basedir}/lib/log4j-1.2.17.jar"/>
       <zipfileset src="${basedir}/lib/commons-lang3-3.1.jar"/>
       <zipfileset src="${basedir}/lib/cloning-1.9.0.jar"/>
       <zipfileset src="${basedir}/lib/objenesis-1.2.jar"/>
+      <zipfileset file="${basedir}/src/main/config/debug/log4j.properties"/>
     </jar>
     <copy file="${temp.jar.path.jdooms.jar}" tofile="${artifact.temp.output.jdooms:jar}/jdooms.jar"/>
   </target>
   
-  <target name="build.all.artifacts" depends="artifact.jdooms:jar" description="Build all artifacts">
+  <target name="build.all.artifacts" depends="artifact.jdooms-bench, artifact.jdooms:jar" description="Build all artifacts">
+    <mkdir dir="${artifact.output.jdooms-bench}"/>
+    <copy todir="${artifact.output.jdooms-bench}">
+      <fileset dir="${artifact.temp.output.jdooms-bench}"/>
+    </copy>
     <mkdir dir="${artifact.output.jdooms:jar}"/>
     <copy todir="${artifact.output.jdooms:jar}">
       <fileset dir="${artifact.temp.output.jdooms:jar}"/>

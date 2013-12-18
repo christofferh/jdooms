@@ -20,7 +20,7 @@ class DSObjectCommSender {
 
     public DSObjectCommSender(DSObjectComm DSObjectComm) {
         nodeID = DSObjectComm.getNodeID();
-        clusterSize = DSObjectComm.getClusterSize();
+        clusterSize = DSObjectComm.getClusterCount();
     }
     /**
      * Sends an DSObjectCommMessage via MPI

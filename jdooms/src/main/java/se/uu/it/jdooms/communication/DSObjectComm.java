@@ -29,7 +29,7 @@ public class DSObjectComm implements Runnable {
     private static Queue<DSObjectCommMessage> queue = new ConcurrentLinkedQueue<DSObjectCommMessage>();
 
     private int nodeID;
-    private int clusterSize;
+    private int clusterCount;
     private int workerCount;
     private boolean receiving;
 
@@ -45,13 +45,13 @@ public class DSObjectComm implements Runnable {
         try {
             MPI.Init(args);
             nodeID = MPI.COMM_WORLD.getRank();
-            clusterSize = MPI.COMM_WORLD.getSize();
-            workerCount = Integer.valueOf(args[1]) * clusterSize;
+            clusterCount = MPI.COMM_WORLD.getSize();
+            workerCount = Integer.valueOf(args[1]) * clusterCount;
         } catch (MPIException e) {
             e.printStackTrace();
         }
 
-        dsObjectNodeBarrier = new DSObjectNodeBarrier(nodeID, clusterSize);
+        dsObjectNodeBarrier = new DSObjectNodeBarrier(nodeID, clusterCount);
         dsObjectCommSender = new DSObjectCommSender(this);
         dsObjectCommReceiver = new DSObjectCommReceiver(this.cache, this.tmp_cache, dsObjectNodeBarrier);
         receiving = true;
@@ -67,10 +67,10 @@ public class DSObjectComm implements Runnable {
 
     /**
      * Returns the total cluster size
-     * @return the clusterSize
+     * @return the clusterCount
      */
-    public int getClusterSize() {
-        return clusterSize;
+    public int getClusterCount() {
+        return clusterCount;
     }
 
     /**
