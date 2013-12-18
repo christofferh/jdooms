@@ -1,57 +1,30 @@
 import se.uu.it.jdooms.objectspace.DSObjectSpace;
 import se.uu.it.jdooms.workerdispatcher.DSObject;
 
-import java.util.Arrays;
-
 public class LUFactWorker implements DSObject{
     DSObjectSpace dsObjectSpace;
+    private static int blockSize = 4;
 
     @Override
     public void Init(DSObjectSpace dsObjectSpace) {
-        //To change body of implemented methods use File | Settings | File Templates.
         this.dsObjectSpace = dsObjectSpace;
     }
 
     @Override
     public void run() {
-        final long startTimeInit = System.currentTimeMillis();
-
         if(dsObjectSpace.getWorkerID() == 0) {
-            float[][] matrix = generateMatrix();
-            //System.out.println(printMatrix(matrix));
+            final long startTimeInit = System.currentTimeMillis();
 
             int workerCount =  dsObjectSpace.getWorkerCount();
-            if ((matrix.length/workerCount) < 2) {
-                System.out.println("Array to small for number of workers");
-                System.exit(-1);
-            }
-
             System.out.println("Workercount: " + workerCount);
 
-
-            int matrixLength = matrix.length;
-            int[] distribution = new int[workerCount];
             for (int i = 0; i < workerCount; i++) {
-                distribution[i] = (matrixLength/workerCount) + matrixLength%workerCount;
-                matrixLength -= matrixLength%workerCount;
+                //((Matrix)dsObjectSpace.dsNew("Matrix", i)).Init(copyOfRange(matrix, start, end-1), i, distribution.length);
             }
-
-            int i = 0, start = 0, end = 0;
-            for (int columns : distribution) {
-                end += columns;
-                try {
-                    //((Matrix)dsObjectSpace.dsNew("Matrix", i)).Init(copyOfRange(matrix, start, end-1), i, distribution.length);
-                } catch (InstantiationException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-                start += columns;
-                i++;
-            }
+            final long endTimeInit = System.currentTimeMillis();
+            System.out.println("Startup time: " + (endTimeInit - startTimeInit));
         }
         dsObjectSpace.synchronize();
-        final long endTimeInit = System.currentTimeMillis();
 
         final long startTimeCalculate = System.currentTimeMillis();
         int workerID = dsObjectSpace.getWorkerID();
@@ -95,60 +68,8 @@ public class LUFactWorker implements DSObject{
             /*for (int i = 0; i < dsObjectSpace.getWorkerCount(); i++) {
                 System.out.print(dsObjectSpace.getObject(i, DSObjectSpace.Permission.Read));
             }*/
-            System.out.println("Performance");
-            System.out.println("Startup time: " + (endTimeInit - startTimeInit));
             System.out.println("Calculation time: " + (endTimeCalculate - startTimeCalculate));
         }
         dsObjectSpace.dsFinalize();
-    }
-
-
-
-
-    private float[][] copyOfRange(float[][] matrix, int start, int end) {
-        float[][] result = new float[matrix[0].length][end - start];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = Arrays.copyOfRange(matrix[i], start, end + 1);
-        }
-        return result;
-    }
-
-    private float[][] generateMatrix() {
-        int l = 64;
-        float[][] tmp = new float[l][l];
-        int n = 0;
-        for (int i = 0; i < tmp.length; i++) {
-            for (int j = 0; j < tmp[i].length; j++) {
-                tmp[i][j] = n%l;
-                n++;
-            }
-            n++;
-        }
-        return tmp;
-    }
-
-    public String printMatrix(float[][] matrix) {
-        StringBuilder sb = new StringBuilder();
-        for (float[] row : matrix) {
-            sb.append("[");
-            for (float value : row) {
-                sb.append(value);
-                sb.append( ", ");
-            }
-            sb.append("]");
-            sb.append(System.getProperty("line.separator"));
-        }
-        return sb.toString();
-    }
-
-    public String printDistribution(int[] values) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[");
-        for (int value : values) {
-            sb.append(value + ", ");
-        }
-        sb.append("]");
-        sb.append(System.getProperty("line.separator"));
-        return sb.toString();
     }
 }
