@@ -71,6 +71,7 @@ public class GaussSeidelWorker implements DSObject{
                     left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
                     right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
                 }
+                dsObjectSpace.synchronize();
                 id.calculateRed(left, right);
                 dsObjectSpace.synchronize();
                 if (workerID < 1) { //leftmost
@@ -81,6 +82,7 @@ public class GaussSeidelWorker implements DSObject{
                     left = (Matrix) dsObjectSpace.getObject(workerID - 1, DSObjectSpace.Permission.Read);
                     right = (Matrix) dsObjectSpace.getObject(workerID + 1, DSObjectSpace.Permission.Read);
                 }
+                dsObjectSpace.synchronize();
                 id.calculateBlack(left, right);
                 dsObjectSpace.synchronize();
             } catch (ClassCastException cce) {
