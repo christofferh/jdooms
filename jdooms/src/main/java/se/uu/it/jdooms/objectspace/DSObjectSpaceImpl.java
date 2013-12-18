@@ -76,8 +76,9 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      * Returns the cluster size
      * @return the cluster size
      */
-    public int getClusterSize() {
-        return dsObjectComm.getClusterSize();
+    @Override
+    public int getNodeCount() {
+        return dsObjectComm.getClusterCount();
     }
 
     /**

@@ -23,6 +23,8 @@ public interface DSObjectSpace {
 
     int getWorkerCount();
 
+    int getNodeCount();
+
     void putObject(Object obj);
 
     Object dsNew(String clazz, int ID) throws InstantiationException, IllegalAccessException;

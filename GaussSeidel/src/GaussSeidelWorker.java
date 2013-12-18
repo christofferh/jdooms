@@ -19,7 +19,6 @@ public class GaussSeidelWorker implements DSObject{
 
         if(dsObjectSpace.getWorkerID() == 0) {
             float[][] matrix = generateMatrix();
-            //System.out.println(printMatrix(matrix));
 
             int workerCount =  dsObjectSpace.getWorkerCount();
             if ((matrix.length/workerCount) < 2) {
@@ -27,8 +26,7 @@ public class GaussSeidelWorker implements DSObject{
                 System.exit(-1);
             }
 
-            System.out.println("Workercount: " + workerCount);
-
+            //System.out.println("Nodes: " + dsObjectSpace.getNodeCount() + " Threads: " + workerCount + " Matrix: " + matrixSize);
 
             int matrixLength = matrix.length;
             int[] distribution = new int[workerCount];
@@ -96,9 +94,10 @@ public class GaussSeidelWorker implements DSObject{
             /*for (int i = 0; i < dsObjectSpace.getWorkerCount(); i++) {
                 System.out.print(dsObjectSpace.getObject(i, DSObjectSpace.Permission.Read));
             }*/
-            System.out.println("Performance");
-            System.out.println("Startup time: " + (endTimeInit - startTimeInit));
-            System.out.println("Calculation time: " + (endTimeCalculate - startTimeCalculate));
+            //System.out.println("Startup time: " + (endTimeInit - startTimeInit));
+            //System.out.println("Calculation time: " + (endTimeCalculate - startTimeCalculate));
+            System.out.println(dsObjectSpace.getNodeCount() + "," + dsObjectSpace.getWorkerCount() + "," + matrixSize
+                               + "," + (endTimeInit - startTimeInit) + "," + (endTimeCalculate - startTimeCalculate));
         }
         dsObjectSpace.dsFinalize();
     }

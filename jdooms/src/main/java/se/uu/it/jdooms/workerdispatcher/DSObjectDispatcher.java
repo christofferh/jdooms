@@ -14,7 +14,7 @@ public class DSObjectDispatcher {
 
     public DSObjectDispatcher(DSObjectSpaceImpl dsObjectSpace){
         this.dsObjectSpace = dsObjectSpace;
-        this.workersPerNode = dsObjectSpace.getWorkerCount() / dsObjectSpace.getClusterSize();
+        this.workersPerNode = dsObjectSpace.getWorkerCount() / dsObjectSpace.getNodeCount();
         this.beginWorkerID = dsObjectSpace.getNodeID() * workersPerNode;
     }
 
