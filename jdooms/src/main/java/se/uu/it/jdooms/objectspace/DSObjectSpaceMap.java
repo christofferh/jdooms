@@ -27,7 +27,7 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
     /**
      * Notifies the registered observers
      */
-    private void notifyObservers() {
+    private synchronized void notifyObservers() {
         for (int i = 0; i < observers.length(); i++) {
             if (observers.get(i) != null) {
                 synchronized (observers.get(i)) {
