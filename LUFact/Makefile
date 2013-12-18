@@ -24,7 +24,7 @@ clean:
 	rm -fr out
 
 run:
-	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -Xmx$(MEMORY)m -cp .:out/:../jdooms/classes/artifacts/jdooms_jar/jdooms.jar se.uu.it.jdooms.node.Server GaussSeidelWorker $(THREADS)
+	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -Xmx$(MEMORY)m -cp .:out/:../jdooms/classes/artifacts/jdooms_jar/jdooms.jar se.uu.it.jdooms.node.Server LUFactWorker $(THREADS)
 
 shit:
 	$(info dump..)
