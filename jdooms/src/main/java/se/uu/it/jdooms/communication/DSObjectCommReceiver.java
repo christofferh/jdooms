@@ -144,7 +144,7 @@ class DSObjectCommReceiver {
         logger.debug("Got Request, objectid " + objectID + " permission: " + permission);
         Object obj = cache.get(objectID);
 
-        if (obj != null && ((DSObjectBase)obj).getPermission() == Permission.ReadWrite) { //TODO:kanske kolla om objektet är valid?
+        if (obj != null && ((DSObjectBase)obj).getPermission() == Permission.ReadWrite) {
             sendResponse(permission, objectID, obj, destination);
         }
     }

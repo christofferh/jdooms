@@ -35,7 +35,7 @@ public class DSObjectCommMessage {
     public DSObjectCommMessage(int tag, int destination, Object obj) {
         this.tag = tag;
         this.destination = destination;
-        byte[] serialized = SerializationUtils.serialize((Serializable) obj); //om man gör detta parrallel måste org objektets permission sättas när objektet är serialiserat.
+        byte[] serialized = SerializationUtils.serialize((Serializable) obj);
         this.data = ByteBuffer.allocateDirect(serialized.length);
         this.data.put(serialized);
     }
