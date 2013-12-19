@@ -143,7 +143,9 @@ class DSObjectCommReceiver {
         Object obj = cache.get(objectID);
 
         if (obj != null && ((DSObjectBase)obj).getPermission() == Permission.ReadWrite) {
-            cache.addWrite(objectID);
+            if (permission == Permission.ReadWrite) {
+                cache.addWrite(objectID);
+            }
             sendResponse(permission, objectID, obj, destination);
         }
     }
@@ -159,8 +161,5 @@ class DSObjectCommReceiver {
         DSObjectComm.enqueuMessage(new DSObjectCommMessage(((permission == Permission.Read) ? RES_OBJECT_R : RES_OBJECT_RW),
                 destination,
                 obj));
-        /*if (permission == Permission.ReadWrite) {
-            cache.setPermission(objectID, Permission.Read);
-        }*/
     }
 }

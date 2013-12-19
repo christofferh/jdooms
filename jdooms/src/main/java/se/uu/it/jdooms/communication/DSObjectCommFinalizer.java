@@ -6,7 +6,7 @@ import se.uu.it.jdooms.objectspace.DSObjectSpaceMap;
 /**
  * Finalizer class
  * Shuts JDOOMS down gracefully.
- * @TODO: Doesn't always shutdown gracefully, fix.
+ * @TODO: Does not always shutdown gracefully, fix.
  */
 public class DSObjectCommFinalizer extends DSObjectCommSynchronize {
     private static final Logger logger = Logger.getLogger(DSObjectCommFinalizer.class);

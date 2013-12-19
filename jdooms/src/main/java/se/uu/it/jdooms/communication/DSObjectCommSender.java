@@ -58,8 +58,8 @@ class DSObjectCommSender {
 
     /**
      * Broadscasts data to all nodes
-     * @param tag
-     * @param data
+     * @param tag   the tag of the message
+     * @param data  a
      * @return
      */
     private Request[] broadcast(int tag, ByteBuffer data) {

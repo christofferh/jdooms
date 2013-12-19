@@ -36,8 +36,6 @@ public class DSObjectCommSynchronize implements Runnable {
     public void run() {
         synchronize();
 
-        //logger.debug("Cloning tmp_cache into cache");
-        //cache.clone(cache);
         cache.updateWrite();
         cache.selfInvalidate();
 
