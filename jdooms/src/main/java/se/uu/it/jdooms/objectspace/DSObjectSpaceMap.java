@@ -3,6 +3,7 @@ package se.uu.it.jdooms.objectspace;
 import com.rits.cloning.Cloner;
 import org.apache.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
@@ -16,12 +17,27 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
     private AtomicReferenceArray<Object> observers;
     private final Cloner cloner;
     private int nodeWorkerCount;
+    private ArrayList<Integer> writeList = new ArrayList<Integer>();
 
     public DSObjectSpaceMap(int nodeWorkerCount) {
         super();
         this.cloner = new Cloner();
         this.nodeWorkerCount = nodeWorkerCount;
         observers = new AtomicReferenceArray<Object>(nodeWorkerCount);
+    }
+
+    public void addWrite(int objectID) {
+        logger.debug("added ID:" + objectID);
+        writeList.add(objectID);
+    }
+
+    public void updateWrite() {
+        for (int objectID : writeList) {
+            logger.debug("updateWrite ID:" + objectID);
+            V obj = super.get(objectID);
+            ((DSObjectBase)obj).setPermission(DSObjectSpace.Permission.Read);
+        }
+        writeList.clear();
     }
 
     /**
@@ -54,7 +70,7 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
      */
     public void removeObserver(Object obj) {
         logger.debug("removeObserver: " + obj);
-        observers.set(Integer.parseInt(Thread.currentThread().getName())%nodeWorkerCount, null);
+        observers.set(Integer.parseInt(Thread.currentThread().getName()) % nodeWorkerCount, null);
     }
 
     /**
@@ -85,11 +101,11 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
 
     /**
      * Sets the permission permission on the object at index key
-     * @param key object ID
+     * @param objectID object ID
      * @param permission Read, ReadWrite
      */
-    public void setPermission(K key, DSObjectSpace.Permission permission) {
-        V obj = super.get(key);
+    public void setPermission(int objectID, DSObjectSpace.Permission permission) {
+        V obj = super.get(objectID);
         if (obj != null && ((DSObjectBase)obj).getPermission() == DSObjectSpace.Permission.ReadWrite) {
             ((DSObjectBase)obj).setPermission(permission);
         }
@@ -98,8 +114,11 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
     public void clone(DSObjectSpaceMap<K, V> map) {
         map.clear();
         for (Entry<K, V> entry : super.entrySet()) {
-            map.put(cloner.deepClone(entry.getKey()), cloner.deepClone(entry.getValue()));
+            //map.put(cloner.deepClone(entry.getKey()), cloner.deepClone(entry.getValue()));
+            if (((DSObjectBase)entry.getValue()).getPermission() == DSObjectSpace.Permission.ReadWrite) {
+                map.put(cloner.deepClone(entry.getKey()), cloner.deepClone(entry.getValue()));
+            }
+            //map.put(entry.getKey(), entry.getValue());
         }
-
     }
 }

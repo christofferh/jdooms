@@ -34,14 +34,12 @@ public class DSObjectComm implements Runnable {
     private boolean receiving;
 
     private DSObjectSpaceMap<Integer, Object> cache;
-    private DSObjectSpaceMap<Integer, Object> tmp_cache;
     private DSObjectCommSender dsObjectCommSender;
     private DSObjectCommReceiver dsObjectCommReceiver;
     private DSObjectNodeBarrier dsObjectNodeBarrier;
 
-    public DSObjectComm(String[] args, DSObjectSpaceMap<Integer, Object> cache, DSObjectSpaceMap<Integer, Object> tmp_cache) {
+    public DSObjectComm(String[] args, DSObjectSpaceMap<Integer, Object> cache) {
         this.cache = cache;
-        this.tmp_cache = tmp_cache;
         try {
             MPI.Init(args);
             nodeID = MPI.COMM_WORLD.getRank();
@@ -53,7 +51,7 @@ public class DSObjectComm implements Runnable {
 
         dsObjectNodeBarrier = new DSObjectNodeBarrier(nodeID, clusterCount);
         dsObjectCommSender = new DSObjectCommSender(this);
-        dsObjectCommReceiver = new DSObjectCommReceiver(this.cache, this.tmp_cache, dsObjectNodeBarrier);
+        dsObjectCommReceiver = new DSObjectCommReceiver(this.cache, dsObjectNodeBarrier);
         receiving = true;
     }
 
@@ -121,8 +119,8 @@ public class DSObjectComm implements Runnable {
             queue.offer(new DSObjectCommMessage(REQ_OBJECT_RW, objectID));
         }
         Object obj;
-        tmp_cache.addObserver(this);
-        obj = tmp_cache.get(objectID);
+        cache.addObserver(this);
+        obj = cache.get(objectID);
         while (!((DSObjectBase)obj).isValid()) {
             try {
                 synchronized (this) {
@@ -131,9 +129,9 @@ public class DSObjectComm implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            obj = tmp_cache.get(objectID);
+            obj = cache.get(objectID);
         }
-        tmp_cache.removeObserver(this);
+        cache.removeObserver(this);
         return obj;
     }
 

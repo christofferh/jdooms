@@ -22,14 +22,11 @@ import java.nio.ByteBuffer;
 class DSObjectCommReceiver {
     private static final Logger logger = Logger.getLogger(DSObjectCommReceiver.class);
     private DSObjectSpaceMap<Integer, Object> cache;
-    private DSObjectSpaceMap<Integer, Object> tmp_cache;
     private DSObjectNodeBarrier dsObjectNodeBarrier;
 
     public DSObjectCommReceiver(DSObjectSpaceMap<Integer, Object> cache,
-                                DSObjectSpaceMap<Integer, Object> tmp_cache,
                                 DSObjectNodeBarrier dsObjectNodeBarrier) {
         this.cache = cache;
-        this.tmp_cache = tmp_cache;
         this.dsObjectNodeBarrier = dsObjectNodeBarrier;
     }
 
@@ -85,7 +82,7 @@ class DSObjectCommReceiver {
         DSObjectBaseImpl dsObjectBase = new DSObjectBaseImpl();
         dsObjectBase.setPermission(Permission.Read);
         dsObjectBase.setValid(false);
-        tmp_cache.put(objectID, dsObjectBase);
+        cache.put(objectID, dsObjectBase);
     }
 
     /**
@@ -121,7 +118,7 @@ class DSObjectCommReceiver {
         Object obj = SerializationUtils.deserialize(bytes);
 
 
-        Object cacheObj = tmp_cache.get(((DSObjectBase)obj).getID());
+        Object cacheObj = cache.get(((DSObjectBase)obj).getID());
         if (((DSObjectBase)cacheObj).getPermission() != Permission.ReadWrite) {
             if (permission == Permission.Read) {
                 ((DSObjectBase)obj).setPermission(Permission.Read);
@@ -129,7 +126,7 @@ class DSObjectCommReceiver {
                 ((DSObjectBase)obj).setPermission(Permission.ReadWrite);
             }
             ((DSObjectBase)obj).setValid(true);
-            tmp_cache.put(((DSObjectBase) obj).getID(), obj);
+           cache.put(((DSObjectBase) obj).getID(), obj);
         }
     }
 
@@ -142,9 +139,11 @@ class DSObjectCommReceiver {
     private void gotRequest(Permission permission, ByteBuffer byteBuffer, int destination) {
         int objectID = byteBuffer.getInt();
         logger.debug("Got Request, objectid " + objectID + " permission: " + permission);
+
         Object obj = cache.get(objectID);
 
         if (obj != null && ((DSObjectBase)obj).getPermission() == Permission.ReadWrite) {
+            cache.addWrite(objectID);
             sendResponse(permission, objectID, obj, destination);
         }
     }
@@ -160,8 +159,8 @@ class DSObjectCommReceiver {
         DSObjectComm.enqueuMessage(new DSObjectCommMessage(((permission == Permission.Read) ? RES_OBJECT_R : RES_OBJECT_RW),
                 destination,
                 obj));
-        if (permission == Permission.ReadWrite) {
-            tmp_cache.setPermission(objectID, Permission.Read);
-        }
+        /*if (permission == Permission.ReadWrite) {
+            cache.setPermission(objectID, Permission.Read);
+        }*/
     }
 }

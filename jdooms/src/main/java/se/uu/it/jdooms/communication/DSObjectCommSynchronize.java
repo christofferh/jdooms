@@ -12,13 +12,11 @@ public class DSObjectCommSynchronize implements Runnable {
     protected final DSObjectComm dsObjectComm;
     private final DSObjectNodeBarrier dsObjectNodeBarrier;
     private final DSObjectSpaceMap<Integer, Object> cache;
-    private final DSObjectSpaceMap<Integer, Object> tmp_cache;
 
-    public DSObjectCommSynchronize(DSObjectComm dsObjectComm, DSObjectSpaceMap<Integer, Object> cache, DSObjectSpaceMap<Integer, Object> tmp_cache) {
+    public DSObjectCommSynchronize(DSObjectComm dsObjectComm, DSObjectSpaceMap<Integer, Object> cache) {
         this.dsObjectComm = dsObjectComm;
         dsObjectNodeBarrier = dsObjectComm.getDsObjectNodeBarrier();
         this.cache = cache;
-        this.tmp_cache = tmp_cache;
     }
 
     protected void synchronize() {
@@ -38,9 +36,10 @@ public class DSObjectCommSynchronize implements Runnable {
     public void run() {
         synchronize();
 
-        logger.debug("Cloning tmp_cache into cache");
-        tmp_cache.clone(cache);
-        tmp_cache.selfInvalidate();
+        //logger.debug("Cloning tmp_cache into cache");
+        //cache.clone(cache);
+        cache.updateWrite();
+        cache.selfInvalidate();
 
         synchronize();
         logger.debug("Node passed barrier");
