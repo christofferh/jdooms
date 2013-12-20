@@ -4,6 +4,7 @@ import com.rits.cloning.Cloner;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
@@ -17,7 +18,7 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
     private AtomicReferenceArray<Object> observers;
     private final Cloner cloner;
     private int nodeWorkerCount;
-    private ArrayList<Integer> writeList = new ArrayList<Integer>();
+    private List<Entry<Integer,DSObjectSpace.Permission>> permissionList = new ArrayList();
 
     public DSObjectSpaceMap(int nodeWorkerCount) {
         super();
@@ -26,18 +27,27 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
         observers = new AtomicReferenceArray<Object>(nodeWorkerCount);
     }
 
-    public void addWrite(int objectID) {
-        logger.debug("added ID:" + objectID);
-        writeList.add(objectID);
+    /**
+     * Sets the permission to set in the next synchronize
+     * @param objectID      the objectID
+     * @param permission    the permission to set
+     */
+    public void addPermission(int objectID, DSObjectSpaceImpl.Permission permission) {
+        permissionList.add(new SimpleEntry(objectID, permission));
+        logger.debug("Wrote permission objectID: " + objectID + ": " + permission);
     }
 
-    public void updateWrite() {
-        for (int objectID : writeList) {
-            logger.debug("updateWrite ID:" + objectID);
-            V obj = super.get(objectID);
-            ((DSObjectBase)obj).setPermission(DSObjectSpace.Permission.Read);
+    /**
+     * Updates the cache to the new permissions stored in the permissionList
+     */
+    public void updatePermissions() {
+        for (Entry<Integer, DSObjectSpace.Permission> entry : permissionList) {
+            V obj = super.get(entry.getKey());
+            ((DSObjectBase)obj).setPermission(entry.getValue());
+            logger.debug("Set " + entry.getKey() + " to: " + entry.getValue());
         }
-        writeList.clear();
+
+        permissionList.clear();
     }
 
     /**

@@ -117,17 +117,16 @@ class DSObjectCommReceiver {
         byteBuffer.get(bytes);
         Object obj = SerializationUtils.deserialize(bytes);
 
+        //Object cacheObj = cache.get(((DSObjectBase)obj).getID());
+        //if (((DSObjectBase)cacheObj).getPermission() != Permission.ReadWrite) {
 
-        Object cacheObj = cache.get(((DSObjectBase)obj).getID());
-        if (((DSObjectBase)cacheObj).getPermission() != Permission.ReadWrite) {
-            if (permission == Permission.Read) {
-                ((DSObjectBase)obj).setPermission(Permission.Read);
-            } else {
-                ((DSObjectBase)obj).setPermission(Permission.ReadWrite);
-            }
-            ((DSObjectBase)obj).setValid(true);
-           cache.put(((DSObjectBase) obj).getID(), obj);
+        if (permission == Permission.ReadWrite) {
+            cache.addPermission(((DSObjectBase)obj).getID(), permission);
         }
+        ((DSObjectBase)obj).setPermission(Permission.Read);
+        ((DSObjectBase)obj).setValid(true);
+        cache.put(((DSObjectBase) obj).getID(), obj);
+        //}
     }
 
     /**
@@ -144,20 +143,19 @@ class DSObjectCommReceiver {
 
         if (obj != null && ((DSObjectBase)obj).getPermission() == Permission.ReadWrite) {
             if (permission == Permission.ReadWrite) {
-                cache.addWrite(objectID);
+                cache.addPermission(objectID, Permission.Read);
             }
-            sendResponse(permission, objectID, obj, destination);
+            sendResponse(permission, obj, destination);
         }
     }
 
     /**
      * Method to send a response to a requester
      * @param permission the specified Permission
-     * @param objectID the objectID
      * @param obj the object to send
      * @param destination the ID of the requester
      */
-    private void sendResponse(Permission permission, int objectID, Object obj, int destination) {
+    private void sendResponse(Permission permission, Object obj, int destination) {
         DSObjectComm.enqueuMessage(new DSObjectCommMessage(((permission == Permission.Read) ? RES_OBJECT_R : RES_OBJECT_RW),
                 destination,
                 obj));

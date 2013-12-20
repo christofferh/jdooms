@@ -36,7 +36,7 @@ public class DSObjectCommSynchronize implements Runnable {
     public void run() {
         synchronize();
 
-        cache.updateWrite();
+        cache.updatePermissions();
         cache.selfInvalidate();
 
         synchronize();
