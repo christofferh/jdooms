@@ -15,6 +15,7 @@ import se.uu.it.jdooms.objectspace.DSObjectSpaceMap;
 import static se.uu.it.jdooms.communication.DSObjectComm.*;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * Receiver class
@@ -23,11 +24,14 @@ class DSObjectCommReceiver {
     private static final Logger logger = Logger.getLogger(DSObjectCommReceiver.class);
     private DSObjectSpaceMap<Integer, Object> cache;
     private DSObjectNodeBarrier dsObjectNodeBarrier;
+    private ByteBuffer byteBuffer;
 
     public DSObjectCommReceiver(DSObjectSpaceMap<Integer, Object> cache,
                                 DSObjectNodeBarrier dsObjectNodeBarrier) {
         this.cache = cache;
         this.dsObjectNodeBarrier = dsObjectNodeBarrier;
+        byteBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
+        byteBuffer.order(ByteOrder.nativeOrder());
     }
 
     /**
@@ -36,31 +40,31 @@ class DSObjectCommReceiver {
      */
     public void receive(Status status) {
         Request request;
+        byteBuffer.position(0);
         try {
             int tag = status.getTag();
             int count = status.getCount(MPI.BYTE);
             int sender = status.getSource();
-            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(count);
             request = MPI.COMM_WORLD.iRecv(byteBuffer, count, MPI.BYTE, sender, tag);
             request.waitFor();
             switch (tag) {
                 case RES_OBJECT_R:
-                    gotResponse(Permission.Read, byteBuffer);
+                    gotResponse(Permission.Read, count);
                     break;
                 case RES_OBJECT_RW:
-                    gotResponse(Permission.ReadWrite, byteBuffer);
+                    gotResponse(Permission.ReadWrite, count);
                     break;
                 case REQ_OBJECT_R:
-                    gotRequest(Permission.Read, byteBuffer, sender);
+                    gotRequest(Permission.Read, sender);
                     break;
                 case REQ_OBJECT_RW:
-                    gotRequest(Permission.ReadWrite, byteBuffer, sender);
+                    gotRequest(Permission.ReadWrite, sender);
                     break;
                 case RESERVE_OBJECT:
-                    gotReserveObject(byteBuffer);
+                    gotReserveObject();
                     break;
                 case LOAD_DSCLASS:
-                    gotLoadDsClass(byteBuffer);
+                    gotLoadDsClass(count);
                     break;
                 case SYNCHRONIZE:
                     gotSynchronize(sender);
@@ -74,9 +78,8 @@ class DSObjectCommReceiver {
 
     /**
      * Method for reserving an object in the object space
-     * @param byteBuffer a ByteBuffer containing the objectID to reserve
      */
-    private void gotReserveObject(ByteBuffer byteBuffer) {
+    private void gotReserveObject() {
         int objectID = byteBuffer.getInt();
         logger.debug("Got RESERVE_OBJECT:" + objectID);
         DSObjectBaseImpl dsObjectBase = new DSObjectBaseImpl();
@@ -87,11 +90,11 @@ class DSObjectCommReceiver {
 
     /**
      * Method to load a DSClass
-     * @param byteBuffer a ByteBuffer containing the class to load
      */
-    private void gotLoadDsClass(ByteBuffer byteBuffer) {
-        byte[] bytes = new byte[byteBuffer.capacity()];
+    private void gotLoadDsClass(int count) {
+        byte[] bytes = new byte[count];
         byteBuffer.get(bytes);
+        logger.debug(byteBuffer.position());
         String clazz = new String(bytes);
         logger.debug("Got LOAD_DSCLASS: " + clazz);
         DSObjectSpaceImpl.loadDSClass(clazz);
@@ -109,11 +112,10 @@ class DSObjectCommReceiver {
     /**
      * Method to store a response object in the object store
      * @param permission the specified Permission
-     * @param byteBuffer the ByteBuffer containing the serialized object
      */
-    private void gotResponse(Permission permission, ByteBuffer byteBuffer) {
+    private void gotResponse(Permission permission, int count) {
         logger.debug("Got Response");
-        byte[] bytes = new byte[byteBuffer.capacity()];
+        byte[] bytes = new byte[count];
         byteBuffer.get(bytes);
         Object obj = SerializationUtils.deserialize(bytes);
 
@@ -132,10 +134,9 @@ class DSObjectCommReceiver {
     /**
      * Method to respond to a getObject request from another node
      * @param permission the specified Permission
-     * @param byteBuffer a ByteBuffer containing the requested objectID
      * @param destination the ID of the requester
      */
-    private void gotRequest(Permission permission, ByteBuffer byteBuffer, int destination) {
+    private void gotRequest(Permission permission, int destination) {
         int objectID = byteBuffer.getInt();
         logger.debug("Got Request, objectid " + objectID + " permission: " + permission);
 

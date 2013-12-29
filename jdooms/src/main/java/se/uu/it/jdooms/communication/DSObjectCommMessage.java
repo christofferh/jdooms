@@ -47,8 +47,6 @@ public class DSObjectCommMessage {
      */
     public DSObjectCommMessage(int tag, String clazz) {
         this.tag = tag;
-        /*ByteBuffer byteBuffer = ByteBuffer.allocateDirect(clazz.toCharArray().length);
-        byteBuffer.put(clazz.getBytes());*/
         this.clazz = clazz;
     }
 

@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import static se.uu.it.jdooms.communication.DSObjectComm.*;
 
@@ -20,17 +21,15 @@ class DSObjectCommSender {
     private final int nodeID;
     private final int clusterSize;
     private ByteBuffer sendBuffer;
-    private final int bufferSize = 10242;
 
     public DSObjectCommSender(DSObjectComm DSObjectComm) {
         nodeID = DSObjectComm.getNodeID();
         clusterSize = DSObjectComm.getClusterCount();
-        sendBuffer = ByteBuffer.allocateDirect(bufferSize);
-        sendBuffer.position(0);
+        sendBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
+        sendBuffer.order(ByteOrder.nativeOrder());
     }
     /**
      * Sends an DSObjectCommMessage via MPI
-     *
      * @param message the message to send
      */
     public Request[] send(DSObjectCommMessage message) {
@@ -83,7 +82,7 @@ class DSObjectCommSender {
             if (node != nodeID) {
                 try {
                     request = MPI.COMM_WORLD.iSend(sendBuffer, sendBuffer.position(), MPI.BYTE, node, tag);
-                    sendBuffer.position(0);
+
                     requests[iter] = request;
                     iter++;
                 } catch (MPIException e) {
@@ -92,6 +91,7 @@ class DSObjectCommSender {
 
             }
         }
+        sendBuffer.position(0);
         return requests;
     }
 
