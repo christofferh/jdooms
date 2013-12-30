@@ -72,7 +72,7 @@ class DSObjectCommSender {
     /**
      * Broadscasts data to all nodes
      * @param tag   the tag of the message
-     * @return
+     * @return      the request objects
      */
     private Request[] broadcast(int tag) {
         Request request;
@@ -97,9 +97,9 @@ class DSObjectCommSender {
 
     /**
      * Send the data to a certain node
-     * @param tag
-     * @param destination
-     * @return
+     * @param tag           the tag
+     * @param destination   the destination nodeID
+     * @return              the request object
      */
     private Request[] send(int tag, int destination) {
         Request request;

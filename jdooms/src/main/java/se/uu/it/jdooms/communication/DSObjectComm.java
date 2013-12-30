@@ -27,7 +27,7 @@ public class DSObjectComm implements Runnable {
     public static final int RESERVE_OBJECT  = 60;
     public static final int BUFFER_SIZE     = 3107761;
 
-    private static Queue<DSObjectCommMessage> queue = new ConcurrentLinkedQueue<DSObjectCommMessage>();
+    private static final Queue<DSObjectCommMessage> queue = new ConcurrentLinkedQueue<DSObjectCommMessage>();
 
     private int nodeID;
     private int clusterCount;
@@ -161,8 +161,7 @@ public class DSObjectComm implements Runnable {
             } catch (MPIException e) {
                 e.printStackTrace();
             }
-
-            //for (int tests = 0; tests < 3; tests++ ) {
+            /* Test if the message has been sent */
             for (int i = 0; i < requests.size(); i++) {
                 try {
                     if (requests.get(i).test()) {
@@ -172,7 +171,6 @@ public class DSObjectComm implements Runnable {
                     e.printStackTrace();
                 }
             }
-            //}
         }
 
         try {
@@ -181,8 +179,6 @@ public class DSObjectComm implements Runnable {
             e.printStackTrace();
         }
     }
-
-
 }
 
 

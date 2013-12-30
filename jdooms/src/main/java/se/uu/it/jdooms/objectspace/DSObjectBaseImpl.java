@@ -31,7 +31,7 @@ public class DSObjectBaseImpl implements Serializable, DSObjectBase {
     }
 
     /**
-     * isValid
+     * Check if the object is valid
      * @return if the object is valid
      */
     @Override
@@ -49,7 +49,7 @@ public class DSObjectBaseImpl implements Serializable, DSObjectBase {
     }
 
     /**
-     * get object read/write permission
+     * Get object read/write permission
      * @return the permission of the object
      */
     @Override
@@ -58,7 +58,7 @@ public class DSObjectBaseImpl implements Serializable, DSObjectBase {
     }
 
     /**
-     * set the object read/write permission
+     * Set the object read/write permission
      * @param permission the permission of the object
      */
     @Override

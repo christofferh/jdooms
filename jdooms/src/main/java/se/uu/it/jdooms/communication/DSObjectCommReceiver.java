@@ -45,6 +45,7 @@ class DSObjectCommReceiver {
             int tag = status.getTag();
             int count = status.getCount(MPI.BYTE);
             int sender = status.getSource();
+
             request = MPI.COMM_WORLD.iRecv(byteBuffer, count, MPI.BYTE, sender, tag);
             request.waitFor();
             switch (tag) {
@@ -70,6 +71,7 @@ class DSObjectCommReceiver {
                     gotSynchronize(sender);
                     break;
                 default:
+                    break;
             }
         } catch (MPIException e) {
             e.printStackTrace();
@@ -82,6 +84,7 @@ class DSObjectCommReceiver {
     private void gotReserveObject() {
         int objectID = byteBuffer.getInt();
         logger.debug("Got RESERVE_OBJECT:" + objectID);
+
         DSObjectBaseImpl dsObjectBase = new DSObjectBaseImpl();
         dsObjectBase.setPermission(Permission.Read);
         dsObjectBase.setValid(false);
@@ -94,7 +97,6 @@ class DSObjectCommReceiver {
     private void gotLoadDsClass(int count) {
         byte[] bytes = new byte[count];
         byteBuffer.get(bytes);
-        logger.debug(byteBuffer.position());
         String clazz = new String(bytes);
         logger.debug("Got LOAD_DSCLASS: " + clazz);
         DSObjectSpaceImpl.loadDSClass(clazz);
@@ -119,16 +121,13 @@ class DSObjectCommReceiver {
         byteBuffer.get(bytes);
         Object obj = SerializationUtils.deserialize(bytes);
 
-        //Object cacheObj = cache.get(((DSObjectBase)obj).getID());
-        //if (((DSObjectBase)cacheObj).getPermission() != Permission.ReadWrite) {
-
         if (permission == Permission.ReadWrite) {
             cache.addPermission(((DSObjectBase)obj).getID(), permission);
         }
+
         ((DSObjectBase)obj).setPermission(Permission.Read);
         ((DSObjectBase)obj).setValid(true);
         cache.put(((DSObjectBase) obj).getID(), obj);
-        //}
     }
 
     /**

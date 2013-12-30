@@ -1,11 +1,6 @@
 package se.uu.it.jdooms.communication;
 
-import org.apache.commons.lang3.SerializationUtils;
 import org.apache.log4j.Logger;
-
-import java.io.Serializable;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 
 /**
  * Message structure for a DSOObject Message

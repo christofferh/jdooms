@@ -19,6 +19,9 @@ public class DSObjectCommSynchronize implements Runnable {
         this.cache = cache;
     }
 
+    /**
+     * Waits for the DSObjectNodeBarrier to release its barrier
+     */
     protected void synchronize() {
         dsObjectComm.synchronize();
         if (dsObjectNodeBarrier.barrier(this)) {

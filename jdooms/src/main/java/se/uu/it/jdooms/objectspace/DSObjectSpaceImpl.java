@@ -53,7 +53,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     }
 
     /**
-     * Return the worker ID.
+     * Return the worker ID
      * @return the workerID
      */
     @Override
@@ -102,8 +102,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
             logger.debug("getObject() remote id " + objectID);
             obj = dsObjectComm.getObject(objectID, permission);
         }
-        //get from tmp_cache
-        //get remote, put respone into tmp_cache
+
         return obj;
     }
 
@@ -112,7 +111,6 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
      */
     @Override
     public void synchronize() {
-        //merge tmp_cache with cache
         try {
             barrier.await();
         } catch (InterruptedException e) {

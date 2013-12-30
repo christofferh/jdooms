@@ -1,6 +1,5 @@
 package se.uu.it.jdooms.objectspace;
 
-import com.rits.cloning.Cloner;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -16,13 +15,11 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
     private static final Logger logger = Logger.getLogger(DSObjectSpaceMap.class);
     private AtomicReferenceArray<Object> observers;
-    private final Cloner cloner;
     private int nodeWorkerCount;
     private List<Entry<Integer,DSObjectSpace.Permission>> permissionList = new ArrayList();
 
     public DSObjectSpaceMap(int nodeWorkerCount) {
         super();
-        this.cloner = new Cloner();
         this.nodeWorkerCount = nodeWorkerCount;
         observers = new AtomicReferenceArray<Object>(nodeWorkerCount);
     }
@@ -90,7 +87,7 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
      * @return          the previous value associated with key, or null if there was no mapping for key
      */
     public V put(K key, V value) {
-        logger.debug("Put key: " + key + " objectspace");
+        logger.debug("Put key: " + key + " in Objectspace");
         V result = super.put(key, value);
         notifyObservers();
         return result;
@@ -100,35 +97,12 @@ public class DSObjectSpaceMap<K, V> extends ConcurrentHashMap<K, V> {
      * Invalidates all objects with Permission.Read in the object store
      */
     public void selfInvalidate() {
-        logger.debug("self invalidating");
+        logger.debug("Self invalidating");
         for (Entry<K, V> entry : super.entrySet()) {
             if (((DSObjectBase)entry.getValue()).getPermission() == DSObjectSpace.Permission.Read) {
                 V obj = entry.getValue();
                 ((DSObjectBase)obj).setValid(false);
             }
-        }
-    }
-
-    /**
-     * Sets the permission permission on the object at index key
-     * @param objectID object ID
-     * @param permission Read, ReadWrite
-     */
-    public void setPermission(int objectID, DSObjectSpace.Permission permission) {
-        V obj = super.get(objectID);
-        if (obj != null && ((DSObjectBase)obj).getPermission() == DSObjectSpace.Permission.ReadWrite) {
-            ((DSObjectBase)obj).setPermission(permission);
-        }
-    }
-
-    public void clone(DSObjectSpaceMap<K, V> map) {
-        map.clear();
-        for (Entry<K, V> entry : super.entrySet()) {
-            //map.put(cloner.deepClone(entry.getKey()), cloner.deepClone(entry.getValue()));
-            if (((DSObjectBase)entry.getValue()).getPermission() == DSObjectSpace.Permission.ReadWrite) {
-                map.put(cloner.deepClone(entry.getKey()), cloner.deepClone(entry.getValue()));
-            }
-            //map.put(entry.getKey(), entry.getValue());
         }
     }
 }
