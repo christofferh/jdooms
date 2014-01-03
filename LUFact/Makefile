@@ -12,6 +12,8 @@ endif
 
 NP = 1
 THREADS = 2
+SIZE = 1024
+BLOCK_SIZE = 32
 MEMORY=1024
 
 all: compile
@@ -24,7 +26,7 @@ clean:
 	rm -fr out
 
 run:
-	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -Xmx$(MEMORY)m -cp .:out/:../jdooms/classes/artifacts/jdooms_jar/jdooms.jar se.uu.it.jdooms.node.Server LUFactWorker $(THREADS)
+	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -Xmx$(MEMORY)m -cp .:out/:../jdooms/classes/artifacts/jdooms_jar/jdooms.jar se.uu.it.jdooms.node.Server LUFactWorker $(THREADS) $(SIZE) $(BLOCK_SIZE)
 
 shit:
 	$(info dump..)
