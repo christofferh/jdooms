@@ -32,14 +32,13 @@ public class LUFactWorker implements DSObject{
     public void run() {
         final long startTimeInit = System.currentTimeMillis();
         generateWorkList();
+        generateMatrix();
+        blockDistribution();
+        generateDiagonalList();
         /**
          * Setting up all the objects needed to do the fatorization
          */
         if(dsObjectSpace.getWorkerID() == 0) {
-            generateMatrix();
-            blockDistribution();
-            generateDiagonalList();
-
             /*System.out.println("AMatrix: ");
             System.out.println(printMatrix(AMatrix));
             System.out.println("Block ID Distribution: ");
@@ -48,7 +47,6 @@ public class LUFactWorker implements DSObject{
             System.out.println(printDistribution(diagonalBlocks));
             System.out.println("Work items list: ");
             System.out.println(printDistribution(WorkItems));*/
-
             for (int i = 0; i < idDistribution.length; i ++) {
                 for (int j = 0; j < idDistribution[i].length; j ++) {
                     try {
@@ -92,10 +90,10 @@ public class LUFactWorker implements DSObject{
             }
             dsObjectSpace.synchronize();
 
-            if (dsObjectSpace.getWorkerID() == 0) {
-                for (int j = i + 1; j < idDistribution.length; j++) {
-                    for (int k = i + 1; k < idDistribution[j].length; k++) {
-                        int block = idDistribution[j][k];
+            for (int j = i + 1; j < idDistribution.length; j++) {
+                for (int k = i + 1; k < idDistribution[j].length; k++) {
+                    int block = idDistribution[j][k];
+                    if (block%dsObjectSpace.getWorkerCount() == dsObjectSpace.getWorkerID()) {
                         int lblock = idDistribution[j][i];
                         int ublock = idDistribution[i][k];
                         MatrixBlock matrixBlock = (MatrixBlock)dsObjectSpace.getObject(block, DSObjectSpace.Permission.ReadWrite);
@@ -105,6 +103,7 @@ public class LUFactWorker implements DSObject{
                     }
                 }
             }
+            dsObjectSpace.synchronize();
         }
 
         if (dsObjectSpace.getWorkerID() == 0) {
