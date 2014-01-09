@@ -10,10 +10,10 @@ ifndef JAVA_HOME
 $(error JAVA_HOME is not set)
 endif
 
-NP = 1
-THREADS = 2
-SIZE = 1024
-BLOCK_SIZE = 32
+NP=1
+THREADS=2
+SIZE=1024
+BLOCK_SIZE=32
 MEMORY=1024
 
 all: compile
@@ -25,8 +25,11 @@ compile: clean
 clean:
 	rm -fr out
 
-run:
+debug:
 	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -Xmx$(MEMORY)m -cp .:out/:../jdooms/classes/artifacts/jdooms_jar/jdooms.jar se.uu.it.jdooms.node.Server LUFactWorker $(THREADS) $(SIZE) $(BLOCK_SIZE)
+
+benchmark:
+	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -Xmx$(MEMORY)m -cp .:out/:../jdooms/classes/artifacts/jdooms_bench/jdooms-bench.jar se.uu.it.jdooms.node.Server LUFactWorker $(THREADS) $(SIZE) $(BLOCK_SIZE)
 
 shit:
 	$(info dump..)

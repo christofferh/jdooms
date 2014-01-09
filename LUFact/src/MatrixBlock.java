@@ -52,38 +52,23 @@ public class MatrixBlock {
                 sb.append(System.getProperty("line.separator"));
             }
         }
-        /*if (getLBlock() != null && getUBlock() != null) {
-            sb.append("LxU Matrix:");
-            sb.append(System.getProperty("line.separator"));
-            for (float[] row : multiplyMatrix(getLBlock(), getUBlock())) {
-                sb.append("[");
-                for (float value : row) {
-                    sb.append(value);
-                    sb.append( ", ");
-                }
-                sb.append("]");
-                sb.append(System.getProperty("line.separator"));
-            }
-        }*/
         return sb.toString();
     }
 
     private void U() {
-        UBlock = multiplyMatrix(ABlock, invert(LBlock));
+        UBlock = multiplyMatrix(invert(LBlock), ABlock);
         LBlock = null;
     }
 
     private void L() {
-        LBlock = multiplyMatrix(invert(UBlock), ABlock);
+        LBlock = multiplyMatrix(ABlock, invert(UBlock));
         UBlock = null;
     }
 
     public void compute() {
         if (blockID % 2 == 0) {
-            System.out.println("even object calculating U");
             U();
         } else {
-            System.out.println("odd object calculating L");
             L();
         }
     }
@@ -158,8 +143,15 @@ public class MatrixBlock {
         float temp[] = new float[n];
         int hold , I_pivot , J_pivot;
         float pivot, abs_pivot;
+        float[][] B = new float[n][n];
 
-        if(A[0].length!=n)
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                B[i][j] = A[i][j];
+            }
+        }
+
+        if(B[0].length!=n)
         {
             System.out.println("Error in Matrix.invert, inconsistent array sizes.");
         }
@@ -173,7 +165,7 @@ public class MatrixBlock {
         for(int k=0; k<n; k++)
         {
             // find largest element for pivot
-            pivot = A[row[k]][col[k]] ;
+            pivot = B[row[k]][col[k]] ;
             I_pivot = k;
             J_pivot = k;
             for(int i=k; i<n; i++)
@@ -181,11 +173,11 @@ public class MatrixBlock {
                 for(int j=k; j<n; j++)
                 {
                     abs_pivot = Math.abs(pivot) ;
-                    if(Math.abs(A[row[i]][col[j]]) > abs_pivot)
+                    if(Math.abs(B[row[i]][col[j]]) > abs_pivot)
                     {
                         I_pivot = i ;
                         J_pivot = j ;
-                        pivot = A[row[i]][col[j]] ;
+                        pivot = B[row[i]][col[j]] ;
                     }
                 }
             }
@@ -201,12 +193,12 @@ public class MatrixBlock {
             col[k]= col[J_pivot];
             col[J_pivot] = hold ;
             // reduce about pivot
-            A[row[k]][col[k]] = 1 / pivot ;
+            B[row[k]][col[k]] = 1 / pivot ;
             for(int j=0; j<n; j++)
             {
                 if(j != k)
                 {
-                    A[row[k]][col[j]] = A[row[k]][col[j]] * A[row[k]][col[k]];
+                    B[row[k]][col[j]] = B[row[k]][col[j]] * B[row[k]][col[k]];
                 }
             }
             // inner reduction loop
@@ -218,11 +210,11 @@ public class MatrixBlock {
                     {
                         if( k != j )
                         {
-                            A[row[i]][col[j]] = A[row[i]][col[j]] - A[row[i]][col[k]] *
-                                    A[row[k]][col[j]] ;
+                            B[row[i]][col[j]] = B[row[i]][col[j]] - B[row[i]][col[k]] *
+                                    B[row[k]][col[j]] ;
                         }
                     }
-                    A[row[i]][col [k]] = - A[row[i]][col[k]] * A[row[k]][col[k]] ;
+                    B[row[i]][col [k]] = - B[row[i]][col[k]] * B[row[k]][col[k]] ;
                 }
             }
         }
@@ -233,11 +225,11 @@ public class MatrixBlock {
         {
             for(int i=0; i<n; i++)
             {
-                temp[col[i]] = A[row[i]][j];
+                temp[col[i]] = B[row[i]][j];
             }
             for(int i=0; i<n; i++)
             {
-                A[i][j] = temp[i] ;
+                B[i][j] = temp[i] ;
             }
         }
         // unscramble columns
@@ -245,14 +237,14 @@ public class MatrixBlock {
         {
             for(int j=0; j<n; j++)
             {
-                temp[row[j]] = A[i][col[j]] ;
+                temp[row[j]] = B[i][col[j]] ;
             }
             for(int j=0; j<n; j++)
             {
-                A[i][j] = temp[j] ;
+                B[i][j] = temp[j] ;
             }
         }
-        return A;
+        return B;
     }
 
     /***
