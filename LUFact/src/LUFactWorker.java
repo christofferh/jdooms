@@ -1,36 +1,62 @@
 import se.uu.it.jdooms.objectspace.DSObjectSpace;
 import se.uu.it.jdooms.workerdispatcher.DSObject;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
+
 public class LUFactWorker implements DSObject{
     DSObjectSpace dsObjectSpace;
-    private static int size = 100;
-    private static int blockSize = 10;
-    private static int blocksPerSide = size/blockSize;
+    private int size;
+    private int blockSize;
+    private int blocksPerSide;
 
-    private static int matrixOffset = 0;
-    private static int LOffset = blocksPerSide*blocksPerSide;
-    private static int UOffset = blocksPerSide*blocksPerSide*2;
+    private int[] diagonalBlocks;
     private int[][] idDistribution;
     private float[][] AMatrix;
+    private ArrayList<ArrayList<Integer>> WorkItems;
 
     @Override
-    public void Init(DSObjectSpace dsObjectSpace) {
+    public void Init(String[] args, DSObjectSpace dsObjectSpace) {
         this.dsObjectSpace = dsObjectSpace;
+        this.size = Integer.valueOf(args[2]);
+        this.blockSize = Integer.valueOf(args[3]);
+        if (blockSize < 2) {
+            System.out.println("Blocksize can not be less than 2");
+            System.exit(-1);
+        }
+        blocksPerSide = size/blockSize;
     }
 
     @Override
     public void run() {
 
-        nameTest();
-        generateMatrix();
-        System.out.println(printMatrix(idDistribution));
-
-
+        generateWorkList();
+        /**
+         * Setting up all the objects needed to do the fatorization
+         */
         if(dsObjectSpace.getWorkerID() == 0) {
-            for (int i = 0; i < AMatrix.length; i += blockSize) {
-                for (int j = 0; j < AMatrix[i].length; j += blockSize) {
+            final long startTimeInit = System.currentTimeMillis();
+            System.out.println("Matrix size: " + size);
+            System.out.println("Block size: " + blockSize);
+
+            generateMatrix();
+            blockDistribution();
+            generateDiagonalList();
+
+            System.out.println("AMatrix: ");
+            System.out.println(printMatrix(AMatrix));
+            System.out.println("Block ID Distribution: ");
+            System.out.println(printMatrix(idDistribution));
+            System.out.println("Diagonal block ID Distribution: ");
+            System.out.println(printDistribution(diagonalBlocks));
+            System.out.println("Work items list: ");
+            System.out.println(printDistribution(WorkItems));
+
+            for (int i = 0; i < idDistribution.length; i ++) {
+                for (int j = 0; j < idDistribution[i].length; j ++) {
                     try {
-                        ((MatrixBlock)dsObjectSpace.dsNew("MatrixBlock", i)).Init(copyOfRange(matrix, start, end-1), i, distribution.length);
+                        ((MatrixBlock)dsObjectSpace.dsNew("MatrixBlock", idDistribution[i][j])).Init(copyOfRange(i*blockSize, j*blockSize), idDistribution[i][j]);
                     } catch (InstantiationException e) {
                         e.printStackTrace();
                     } catch (IllegalAccessException e) {
@@ -39,92 +65,173 @@ public class LUFactWorker implements DSObject{
 
                 }
             }
-        }
-
-
-        /*if(dsObjectSpace.getWorkerID() == 0) {
-            final long startTimeInit = System.currentTimeMillis();
-
-            float[][] AMatrix = generateMatrix();
-            float[][] LMatrix = generateZeroMatrix();
-            float[][] UMatrix = generateZeroMatrix();
-
-            int workerCount =  dsObjectSpace.getWorkerCount();
-            System.out.println("Workercount: " + workerCount);
-
-            for (int i = 0; i < workerCount; i++) {
-                //
-            }
             final long endTimeInit = System.currentTimeMillis();
             System.out.println("Startup time: " + (endTimeInit - startTimeInit));
-        }*/
-        /*dsObjectSpace.synchronize();
+        }
+        dsObjectSpace.synchronize();
 
         final long startTimeCalculate = System.currentTimeMillis();
-        int workerID = dsObjectSpace.getWorkerID();
-
-        for (int tolerance = 0; tolerance < 1; tolerance++){ // while the tolerance criteria is not met
 
 
-
-
-
+        /**
+         * The actual distributed computation loop
+         */
+        for (int i  = 0; i < WorkItems.size(); i++) {
+            if (dsObjectSpace.getWorkerID() == 0) {
+                MatrixBlock diag = (MatrixBlock)dsObjectSpace.getObject(diagonalBlocks[i], DSObjectSpace.Permission.ReadWrite);
+                //Calculate L and U here for diagonal block
+                diag.LUDecomposition();
+                for (int block : WorkItems.get(i)) {
+                    //Insert needed L and U to caculate all blocks
+                    MatrixBlock matrixBlock = (MatrixBlock)dsObjectSpace.getObject(block, DSObjectSpace.Permission.ReadWrite);
+                    if (block % 2 == 0) {
+                        System.out.println("Inserting L00 into block: " + matrixBlock.getBlockID());
+                        matrixBlock.setLBlock(diag.getLBlock());
+                    } else {
+                        System.out.println("Inserting U00 into block: " + matrixBlock.getBlockID());
+                        matrixBlock.setUBlock(diag.getUBlock());
+                    }
+                }
+            }
+            dsObjectSpace.synchronize();
+            System.out.println("2");
+            for (int item : WorkItems.get(i)) {
+                System.out.println("WorkerId: " + dsObjectSpace.getWorkerID());
+                System.out.println("Workercount: " + dsObjectSpace.getWorkerCount());
+                System.out.println("workitem: " + item);
+                if (item%dsObjectSpace.getWorkerCount() == dsObjectSpace.getWorkerID()) {
+                    System.out.println("inside");
+                    MatrixBlock matrixBlock = (MatrixBlock)dsObjectSpace.getObject(item, DSObjectSpace.Permission.ReadWrite);
+                    //Do the actual work here!!
+                    matrixBlock.compute();
+                }
+            }
+            dsObjectSpace.synchronize();
+            if (dsObjectSpace.getWorkerID() == 0) {
+                for (int j = i + 1; j < idDistribution.length; j++) {
+                    for (int k = i + 1; k < idDistribution[j].length; k++) {
+                        int block = idDistribution[j][k];
+                        int lblock = idDistribution[j][i];
+                        int ublock = idDistribution[i][k];
+                        MatrixBlock matrixBlock = (MatrixBlock)dsObjectSpace.getObject(block, DSObjectSpace.Permission.ReadWrite);
+                        MatrixBlock lBlock = (MatrixBlock)dsObjectSpace.getObject(lblock, DSObjectSpace.Permission.Read);
+                        MatrixBlock uBlock = (MatrixBlock)dsObjectSpace.getObject(ublock, DSObjectSpace.Permission.Read);
+                        System.out.println("Subtracting LBlock " + lBlock.getBlockID() + " and UBlock " + uBlock.getBlockID() + " from block " + matrixBlock.getBlockID());
+                        matrixBlock.subtract(matrixBlock.multiplyMatrix(lBlock.getLBlock(), uBlock.getUBlock()));
+                    }
+                }
+            }
         }
+
+        if (dsObjectSpace.getWorkerID() == 0) {
+            MatrixBlock diag = (MatrixBlock)dsObjectSpace.getObject(diagonalBlocks[diagonalBlocks.length - 1], DSObjectSpace.Permission.ReadWrite);
+            diag.LUDecomposition();
+        }
+
         final long endTimeCalculate = System.currentTimeMillis();
 
+
+        /**
+         * Finishing up the work here
+         */
         if(dsObjectSpace.getWorkerID() == 0) {
             System.out.println("Calculation time: " + (endTimeCalculate - startTimeCalculate));
+            for (int i = 0; i < blocksPerSide*blocksPerSide; i++) {
+                System.out.print(dsObjectSpace.getObject(i, DSObjectSpace.Permission.Read));
+            }
+            /*System.out.println("multiply test: ");
+            System.out.println(printMatrix(multiplyMatrix(AMatrix, AMatrix)));
+            MatrixBlock m = new MatrixBlock();
+            m.Init(AMatrix, 123);
+            m.subtract(AMatrix);
+            System.out.println("subtract test: ");
+            System.out.println(printMatrix(m.getABlock()));
+            m = new MatrixBlock();
+            m.Init(AMatrix, 123);
+            System.out.println("invert test: ");
+            System.out.println(printMatrix(m.invert(AMatrix)));*/
         }
-        */
         dsObjectSpace.dsFinalize();
     }
 
-    private void nameTest() {
-        int n = 20;
-        idDistribution = new int[n][n];
-        int i, j, m = 0, k = 0;
+    private void blockDistribution() {
+        idDistribution = new int[blocksPerSide][blocksPerSide];
+
+        int rowLenght = idDistribution.length;
+        idDistribution[0][0] = 0;
+        for (int i = 1; i < idDistribution.length; i++) {
+            idDistribution[i][i] = ((rowLenght * 2) - 1) + idDistribution[i-1][i-1];
+            rowLenght--;
+        }
+
+        int i, j, m = 1, k = 2;
         for (i = 0; i < idDistribution.length; i++) {
+            k = idDistribution[i][m-1];
+            if (k%2 != 0) {
+                k++;
+            } else {
+                k += 2;
+            }
             for (j = m; j < idDistribution[i].length; j++) {
                 idDistribution[i][j] = k;
-                k++;
+                k += 2;
             }
             m++;
-            k += n - m;
         }
 
         m = 1;
-        k = n;
         for (i = 0; i < idDistribution.length; i++) {
+            k = idDistribution[i][m-1];
+            if (k%2 == 0) {
+                k++;
+            } else {
+                k += 2;
+            }
             for (j = m; j < idDistribution[i].length; j++) {
                 idDistribution[j][i] = k;
-                k++;
+                k += 2;
             }
-            k += n - m;
             m++;
         }
     }
 
-    private void generateMatrix() {
-        AMatrix = new float[size][size];
-        int n = 0;
-        for (int i = 0; i < AMatrix.length; i++) {
-            for (int j = 0; j < AMatrix[i].length; j++) {
-                AMatrix[i][j] = n%size;
+    private void generateDiagonalList() {
+        diagonalBlocks = new int[idDistribution.length];
+        for (int i = 0; i < idDistribution.length; i++) {
+            diagonalBlocks[i] = idDistribution[i][i];
+        }
+    }
+
+    private void generateWorkList() {
+        WorkItems = new ArrayList<ArrayList<Integer>>();
+        int n = 1;
+        for (int i = 0; i < blocksPerSide-1; i++) {
+            ArrayList<Integer> tmp = new ArrayList<Integer>();
+            for (int j = 0; j < (2*(blocksPerSide - (i + 1))); j++) {
+                tmp.add(n);
                 n++;
             }
+            WorkItems.add(i, tmp);
             n++;
         }
     }
 
-    /*private float[][] generateZeroMatrix() {
-        float[][] tmp = new float[size][size];
-        for (int i = 0; i < tmp.length; i++) {
-            for (int j = 0; j < tmp[i].length; j++) {
-                tmp[i][j] = 0;
+    private void generateMatrix() {
+        /*AMatrix = new float[size][size];
+        Random rnd = new Random();
+        int n = 0;
+        for (int i = 0; i < AMatrix.length; i++) {
+            for (int j = 0; j < AMatrix[i].length; j++) {
+                //AMatrix[i][j] = n%size;
+                AMatrix[i][j] = rnd.nextInt(4);
+                n++;
             }
+            n++;
         }
-        return tmp;
-    }*/
+        AMatrix = multiplyMatrix(AMatrix, AMatrix);*/
+        AMatrix = new float[][]{{7,3,-11,2},{-6,7,10,5},{-11,2,-2,6},{3,-10,4,2}};
+        //AMatrix = new float[][]{{1, 2, 3},{2, -1, 1},{3, 4, -1}};
+    }
 
     public String printMatrix(float[][] matrix) {
         StringBuilder sb = new StringBuilder();
@@ -152,5 +259,40 @@ public class LUFactWorker implements DSObject{
             sb.append(System.getProperty("line.separator"));
         }
         return sb.toString();
+    }
+
+    public String printDistribution(int[] distribution) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        for (int value : distribution) {
+            sb.append(value);
+            sb.append( ", ");
+        }
+        sb.append("]");
+        sb.append(System.getProperty("line.separator"));
+        return sb.toString();
+    }
+
+    public String printDistribution(ArrayList<ArrayList<Integer>> values) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        for (ArrayList<Integer> list : values) {
+            sb.append("[");
+            for (int value : list) {
+                sb.append(value + ", ");
+            }
+            sb.append("]");
+        }
+        sb.append("]");
+        sb.append(System.getProperty("line.separator"));
+        return sb.toString();
+    }
+
+    private float[][] copyOfRange(int row, int column) {
+        float[][] result = new float[blockSize][blockSize];
+        for (int i = row, j = 0; i < (row + blockSize); i++, j++) {
+            result[j] = Arrays.copyOfRange(AMatrix[i], column, column + blockSize);
+        }
+        return result;
     }
 }

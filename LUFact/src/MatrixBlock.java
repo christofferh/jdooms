@@ -1,7 +1,7 @@
 public class MatrixBlock {
-    private float[][] ABlock;
-    private float[][] LBlock;
-    private float[][] UBlock;
+    private float[][] ABlock = null;
+    private float[][] UBlock = null;
+    private float[][] LBlock = null;
     private int blockID;
 
     public void Init(float[][] matrixBlock, int blockID) {
@@ -15,6 +15,8 @@ public class MatrixBlock {
         StringBuilder sb = new StringBuilder();
         sb.append("Matrix ID: " + getBlockID());
         sb.append(System.getProperty("line.separator"));
+        sb.append("AMatrix:");
+        sb.append(System.getProperty("line.separator"));
         for (float[] row : getABlock()) {
             sb.append("[");
             for (float value : row) {
@@ -24,45 +26,96 @@ public class MatrixBlock {
             sb.append("]");
             sb.append(System.getProperty("line.separator"));
         }
+        if (getLBlock() != null) {
+            sb.append("LMatrix:");
+            sb.append(System.getProperty("line.separator"));
+            for (float[] row : getLBlock()) {
+                sb.append("[");
+                for (float value : row) {
+                    sb.append(value);
+                    sb.append( ", ");
+                }
+                sb.append("]");
+                sb.append(System.getProperty("line.separator"));
+            }
+        }
+        if (getUBlock() != null) {
+            sb.append("UMatrix:");
+            sb.append(System.getProperty("line.separator"));
+            for (float[] row : getUBlock()) {
+                sb.append("[");
+                for (float value : row) {
+                    sb.append(value);
+                    sb.append( ", ");
+                }
+                sb.append("]");
+                sb.append(System.getProperty("line.separator"));
+            }
+        }
+        /*if (getLBlock() != null && getUBlock() != null) {
+            sb.append("LxU Matrix:");
+            sb.append(System.getProperty("line.separator"));
+            for (float[] row : multiplyMatrix(getLBlock(), getUBlock())) {
+                sb.append("[");
+                for (float value : row) {
+                    sb.append(value);
+                    sb.append( ", ");
+                }
+                sb.append("]");
+                sb.append(System.getProperty("line.separator"));
+            }
+        }*/
         return sb.toString();
     }
 
-    public void L() {
-        LBlock = multiplyMatrix(ABlock, invert(UBlock));
+    private void U() {
+        UBlock = multiplyMatrix(ABlock, invert(LBlock));
+        LBlock = null;
     }
 
-    public void U() {
-        UBlock = multiplyMatrix(invert(LBlock), ABlock);
+    private void L() {
+        LBlock = multiplyMatrix(invert(UBlock), ABlock);
+        UBlock = null;
+    }
+
+    public void compute() {
+        if (blockID % 2 == 0) {
+            System.out.println("even object calculating U");
+            U();
+        } else {
+            System.out.println("odd object calculating L");
+            L();
+        }
     }
 
     public void LUDecomposition() {
-        LBlock = new float[ABlock.length][ABlock.length];
         UBlock = new float[ABlock.length][ABlock.length];
+        LBlock = new float[ABlock.length][ABlock.length];
 
         try {
             for (int i = 0; i < ABlock.length; i++) {
-                LBlock[i][0] = ABlock[i][0];
-                UBlock[0][i] = ABlock[0][i]/ABlock[0][0];
+                UBlock[0][i] = ABlock[0][i];
+                LBlock[i][0] = ABlock[i][0]/ABlock[0][0];
             }
 
             for (int k = 1; k < ABlock.length; k++) {
                 for (int i = 0; i < k; i++) {
-                    LBlock[i][k] = 0;
                     UBlock[k][i] = 0;
+                    LBlock[i][k] = 0;
                 }
                 for (int i = k; i < ABlock.length; i++) {
-                    LBlock[i][k] = ABlock[i][k];
-                    for (int m = 0; m < k; m++) {
-                        LBlock[i][k] -= LBlock[i][m] * UBlock[m][k];
-                    }
-                }
-                UBlock[k][k] = 1;
-                for (int i = k+1; i < ABlock.length; i++) {
                     UBlock[k][i] = ABlock[k][i];
                     for (int m = 0; m < k; m++) {
-                        UBlock[k][i] -= LBlock[k][m] * UBlock[m][i];
+                        UBlock[k][i] -= UBlock[m][i] * LBlock[k][m];
                     }
-                    UBlock[k][i] /= LBlock[k][k];
+                }
+                LBlock[k][k] = 1;
+                for (int i = k+1; i < ABlock.length; i++) {
+                    LBlock[i][k] = ABlock[i][k];
+                    for (int m = 0; m < k; m++) {
+                        LBlock[i][k] -= (UBlock[m][k] * LBlock[i][m]);
+                    }
+                    LBlock[i][k] /= UBlock[k][k];
                 }
             }
         } catch (Exception e) {
@@ -202,6 +255,17 @@ public class MatrixBlock {
         return A;
     }
 
+    /***
+     * Subtracts matrix A from matrix ABlock. Both matrices should be of the same dimensions
+     * @param A Some matrix
+     */
+    public void subtract(float[][] A) {
+        for (int i = 0; i < ABlock.length; i++) {
+            for (int j = 0; j < ABlock[i].length; j++) {
+                ABlock[i][j] -= A[i][j];
+            }
+        }
+    }
 
     public float[][] getABlock() {
         return ABlock;
@@ -211,20 +275,20 @@ public class MatrixBlock {
         this.ABlock = ABlock;
     }
 
-    public float[][] getLBlock() {
-        return LBlock;
-    }
-
-    public void setLBlock(float[][] LBlock) {
-        this.LBlock = LBlock;
-    }
-
     public float[][] getUBlock() {
         return UBlock;
     }
 
     public void setUBlock(float[][] UBlock) {
         this.UBlock = UBlock;
+    }
+
+    public float[][] getLBlock() {
+        return LBlock;
+    }
+
+    public void setLBlock(float[][] LBlock) {
+        this.LBlock = LBlock;
     }
 
     public int getBlockID() {
