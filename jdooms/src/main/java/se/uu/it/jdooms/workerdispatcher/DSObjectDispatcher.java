@@ -27,10 +27,10 @@ public class DSObjectDispatcher {
         DSObject worker;
         try {
             className = args[0];
-            worker = instantiate(className, DSObject.class);
-            worker.Init(args, dsObjectSpace);
             for (int i = beginWorkerID; i < beginWorkerID + workersPerNode; i++)
             {
+                worker = instantiate(className, DSObject.class);
+                worker.Init(args, dsObjectSpace);
                 String workerID = Integer.toString(i);
                 new Thread(worker, workerID).start();
             }
