@@ -25,7 +25,7 @@ public class DSObjectComm implements Runnable {
     public static final int SYNCHRONIZE     = 40;
     public static final int FINALIZE        = 50;
     public static final int RESERVE_OBJECT  = 60;
-    public static final int BUFFER_SIZE     = 3107761;
+    public static final int BUFFER_SIZE     = 20480000;
 
     private static final Queue<DSObjectCommMessage> queue = new ConcurrentLinkedQueue<DSObjectCommMessage>();
 
