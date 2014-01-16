@@ -44,7 +44,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     }
 
     /**
-     * Return the node ID
+     * Returns the local node ID
      * @return the node Id
      */
     @Override
@@ -53,7 +53,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     }
 
     /**
-     * Return the worker ID
+     * Returns the worker ID
      * @return the workerID
      */
     @Override
@@ -62,7 +62,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     }
 
     /**
-     * Returns the worker count given as program parameter
+     * Returns the number of workers in the cluster
      * @return the worker count
      */
     @Override
@@ -80,7 +80,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     }
 
     /**
-     * Stores an object in the local object space
+     * Stores an object in JDOOMS object space
      * @param obj the object to store
      */
     @Override
@@ -91,13 +91,14 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     }
 
     /**
-     * Tries to get an object from the local object space, if unsuccessful, request it from the cluster.
-     * @param objectID the ID of the requested object
+     * Gets an object from the JDOOMS object space
+     * @param objectID the ID of the object to get
      */
     @Override
     public Object getObject(int objectID, Permission permission) {
         Object obj = cache.get(objectID);
         logger.debug("getObject() id " + objectID);
+
         if (obj != null && !((DSObjectBase) obj).isValid()) {
             logger.debug("getObject() remote id " + objectID);
             obj = dsObjectComm.getObject(objectID, permission);
@@ -107,7 +108,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     }
 
     /**
-     * Barrier call
+     * Sets a synchronize point. Blocks until all workers in the cluster have reached a synchronization point.
      */
     @Override
     public void synchronize() {
@@ -121,7 +122,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     }
 
     /**
-     * Finalize call
+     * Finalize call. Terminates the application gracefully.
      */
     @Override
     public void dsFinalize() {
@@ -135,7 +136,7 @@ public class DSObjectSpaceImpl implements DSObjectSpace {
     }
 
     /**
-     * Distributed new
+     * Distributed new. Creates a new instance of a class in the JDOOMS object space.
      * @param clazz class to be instantiated
      * @param objectID uniquely identifiable number to the returning object
      * @return new instance of the input clazz

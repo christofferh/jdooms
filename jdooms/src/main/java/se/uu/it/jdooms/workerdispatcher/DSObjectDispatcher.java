@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 import se.uu.it.jdooms.objectspace.DSObjectSpaceImpl;
 
 /**
- * Distributed object dispatcher
+ * Distributed Object Dispatcher
  */
 public class DSObjectDispatcher {
     private static final Logger logger = Logger.getLogger(DSObjectDispatcher.class);
