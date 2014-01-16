@@ -65,7 +65,9 @@ public class GaussSeidelWorker implements DSObject{
                     }
                     id.calculateRed(left, right);
                 }
-                dsObjectSpace.synchronize();
+            }
+            dsObjectSpace.synchronize();
+            for (int item : workList) {
                 if (item%dsObjectSpace.getWorkerCount() == dsObjectSpace.getWorkerID()) {
                     Matrix id = (Matrix) dsObjectSpace.getObject(item, DSObjectSpace.Permission.ReadWrite);
                     Matrix left = null;
@@ -80,8 +82,8 @@ public class GaussSeidelWorker implements DSObject{
                     }
                     id.calculateBlack(left, right);
                 }
-                dsObjectSpace.synchronize();
             }
+            dsObjectSpace.synchronize();
         }
         final long endTimeCalculate = System.currentTimeMillis();
 
