@@ -13,7 +13,8 @@ endif
 NP=1
 THREADS=2
 MEMORY=1024
-MATRIX_SIZE=32
+SIZE=64
+BLOCK_SIZE=16
 
 all: compile
 
@@ -25,10 +26,10 @@ clean:
 	rm -fr out
 
 debug:
-	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -Xmx$(MEMORY)m -cp .:out/:../jdooms/classes/artifacts/jdooms_jar/jdooms.jar se.uu.it.jdooms.node.Server GaussSeidelWorker $(THREADS) $(MATRIX_SIZE)
+	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -Xmx$(MEMORY)m -cp .:out/:../jdooms/classes/artifacts/jdooms_jar/jdooms.jar se.uu.it.jdooms.node.Server GaussSeidelWorker $(THREADS) $(SIZE) $(BLOCK_SIZE)
 
 benchmark:
-	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -Xmx$(MEMORY)m -cp .:out/:../jdooms/classes/artifacts/jdooms_bench/jdooms-bench.jar se.uu.it.jdooms.node.Server GaussSeidelWorker $(THREADS) $(MATRIX_SIZE)
+	$(MPI_HOME)/bin/mpirun -np $(NP) $(JAVA_HOME)/bin/java -Xmx$(MEMORY)m -cp .:out/:../jdooms/classes/artifacts/jdooms_bench/jdooms-bench.jar se.uu.it.jdooms.node.Server GaussSeidelWorker $(THREADS) $(SIZE) $(BLOCK_SIZE)
 
 shit:
 	$(info dump..)

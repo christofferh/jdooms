@@ -197,7 +197,7 @@ public class LUFactWorker implements DSObject{
             }
             n++;
         }
-        AMatrix = multiplyMatrix(AMatrix, AMatrix);
+        //AMatrix = multiplyMatrix(AMatrix, AMatrix);
     }
 
     public String printMatrix(float[][] matrix) {
