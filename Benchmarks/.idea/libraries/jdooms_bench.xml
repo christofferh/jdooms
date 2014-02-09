@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="jdooms-bench">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../jdooms/classes/artifacts/jdooms_bench/jdooms-bench.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
