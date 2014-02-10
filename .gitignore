@@ -14,3 +14,5 @@ log
 out/
 inspectionProfiles/
 .idea
+*.iml
+.settings
