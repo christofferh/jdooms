@@ -37,7 +37,8 @@ public class GaussSeidelWorker implements DSObject {
             for (int id : workList) {
                 end += blockSize;
                 try {
-                    ((Matrix)dsObjectSpace.dsNew("Matrix", id)).Init(copyOfRange(matrix, start, end-1), i, blockSize);
+                    ((Matrix)dsObjectSpace.dsNew("se.uu.it.jdooms.benchmarks.gausseidel.Matrix", id))
+                            .Init(copyOfRange(matrix, start, end-1), i, blockSize);
                 } catch (InstantiationException e) {
                     e.printStackTrace();
                 } catch (IllegalAccessException e) {

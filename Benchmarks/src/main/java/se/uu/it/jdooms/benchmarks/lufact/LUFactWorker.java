@@ -42,7 +42,7 @@ public class LUFactWorker implements DSObject{
             for (int i = 0; i < idDistribution.length; i ++) {
                 for (int j = 0; j < idDistribution[i].length; j ++) {
                     try {
-                        ((MatrixBlock)dsObjectSpace.dsNew("MatrixBlock",
+                        ((MatrixBlock)dsObjectSpace.dsNew("se.uu.it.jdooms.benchmarks.lufact.MatrixBlock",
                                 idDistribution[i][j])).Init(copyOfRange(i*blockSize, j*blockSize), idDistribution[i][j]);
                     } catch (InstantiationException e) {
                         e.printStackTrace();

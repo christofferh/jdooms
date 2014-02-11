@@ -8,15 +8,17 @@
     <artifactId>benchmarks</artifactId>
     <version>1.0</version>
 
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>se.uu.it.projectit</groupId>
             <artifactId>jdooms</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/../jdooms/target/jdooms-1.0-SNAPSHOT.jar</systemPath>
+            <systemPath>${project.basedir}/../jdooms/target/jdooms-1.0-jar-with-dependencies.jar</systemPath>
         </dependency>
     </dependencies>
-
-    
 </project>
