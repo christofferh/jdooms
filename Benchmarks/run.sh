@@ -1,13 +1,12 @@
 #!/bin/bash
 ####################
-## JDOOMS Benchmark
+## JDOOMS Benchmark tests
 ####################
-# Build jar: mvn package in Benchmarks
 
 MPI_HOME=${MPI_HOME}
 JAVA_HOME=${JAVA_HOME}
 HOSTFILE=${MPI_HOSTFILE}
-JDOOMS_JAR="../jdooms/target/jdooms-1.0-SNAPSHOT-jar-with-dependencies.jar"
+JDOOMS_JAR="../jdooms/target/jdooms-core-1.0-SNAPSHOT-jar-with-dependencies.jar"
 
 ## Defaults
 NP=1
@@ -47,4 +46,4 @@ while getopts "n:t:b:h:m:s:d" opt; do
 done
 shift $((OPTIND-1)) # Shift off the options and optional --.
 
-$MPI_HOME/bin/mpirun -np $NP $HOSTFILE $JAVA_HOME/bin/java -Xmx$MEMORY $DEBUG -cp target/benchmarks-1.0.jar:$JDOOMS_JAR se.uu.it.jdooms.node.Server $BENCHMARK $THREADS $SIZE $BLOCK_SIZE
+$MPI_HOME/bin/mpirun -np $NP $HOSTFILE $JAVA_HOME/bin/java -Xmx$MEMORY $DEBUG -cp target/jdooms-benchmarks-1.0.jar:$JDOOMS_JAR se.uu.it.jdooms.node.Server $BENCHMARK $THREADS $SIZE $BLOCK_SIZE

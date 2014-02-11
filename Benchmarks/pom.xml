@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>se.uu.it.projectit.jdooms</groupId>
-    <artifactId>benchmarks</artifactId>
+    <groupId>se.uu.it.jdooms</groupId>
+    <artifactId>jdooms-benchmarks</artifactId>
     <version>1.0</version>
 
     <properties>
@@ -14,11 +14,11 @@
 
     <dependencies>
         <dependency>
-            <groupId>se.uu.it.projectit</groupId>
-            <artifactId>jdooms</artifactId>
+            <groupId>se.uu.it.jdooms</groupId>
+            <artifactId>jdooms-core</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/../jdooms/target/jdooms-1.0-jar-with-dependencies.jar</systemPath>
+            <systemPath>${project.basedir}/../JDOOMS/target/jdooms-core-1.0-SNAPSHOT-jar-with-dependencies.jar</systemPath>
         </dependency>
     </dependencies>
 </project>
