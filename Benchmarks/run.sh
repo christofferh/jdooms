@@ -26,7 +26,14 @@ while getopts "n:t:b:h:m:s:d" opt; do
             THREADS=$OPTARG
             ;;
         b)
-            BENCHMARK="se.uu.it.jdooms.benchmarks.$OPTARG"
+            if [ "$OPTARG" == "lu" ]; then
+                BENCHMARK=se.uu.it.jdooms.benchmarks.lufact.LUFactWorker
+            elif [ "$OPTARG" == "gauss" ]; then
+                BENCHMARK=se.uu.it.jdooms.benchmarks.gausseidel.GaussSeidelWorker
+            else
+                echo "-b must be 'lu' or 'gauss'"
+                exit 1
+            fi
             ;;
         m)
             SIZE=$OPTARG
