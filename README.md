@@ -8,9 +8,9 @@ JDOOMS is a library for sharing Java objects in a cluster computer environment. 
 	mvn package
 
 ### Running benchmarks:
-E.g. Running LU-Fact in cluster config with a hostfile, number of processes (NP) 2, threads 2, matrix size 1024 and block size 64 in debug mode. Remove -d to disable debugging.
+E.g. Running LU-Fact in cluster config with a hostfile, number of processes (NP) 2, threads 2, matrix size 1024 and block size 64 in debug mode. Remove `-d` to disable debugging. Use `-b gauss` to run GaussSeidel benchmark.
 
-	run.sh -h hostfile -n 2 -t 2 -b lufact.LUFactWorker -m 1024 -s 64 -d
+	run.sh -h hostfile -n 2 -t 2 -b lu -m 1024 -s 64 -d
 
 ### Dependencies
 Open MPI 1.9 with Java bindings (only available in the nightly trunk).
